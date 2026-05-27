@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="../.NStar/Sources/NStar.Dictionaries/NStar.Dictionaries.csproj" />
+  <Project Path="../.NStar/Sources/NStar.Linq/NStar.Linq.csproj" />
+  <Project Path="../.NStar/Sources/NStar.Mpir/NStar.Mpir.csproj" />
+  <Project Path="../.NStar/Sources/NStar.RemoveDoubles/NStar.RemoveDoubles.csproj" />
+  <Project Path="../.NStar/Tests/NStar.Core.Tests/NStar.Core.Tests.csproj" />
+  <Project Path="RedStarMath.Tests/RedStarMath.Tests.csproj" />
+  <Project Path="RedStarMath/RedStarMath.csproj" />
+</Solution>
