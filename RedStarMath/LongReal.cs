@@ -276,6 +276,8 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			+ "096354230157075129296432088558362971801859230928678799175576150822952201848806616643615613"
 			+ "562842355410104862578550863465661734839271290328348967522998634176499319107762583194718667"
 			+ "771801067716614802322659239302476074096777926805529798115328"), 3, DefaultMantissaLength);
+	/// <summary>Gets the mathematical constant 2.</summary>
+	public static LongReal Two { get; } = new(MpzT.Zero, UnsignedLongReal.One, MinMantissaLength);
 	public static LongReal Zero { get; }
 		= new((MpzT.One << MinMantissaLength + 1) + 1, UnsignedLongReal.Zero, MinMantissaLength);
 	private MpzT ZeroMantissa => ShiftedMantissaOverflow + 1;

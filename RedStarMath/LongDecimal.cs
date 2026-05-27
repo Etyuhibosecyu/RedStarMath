@@ -13,7 +13,6 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 {
 	private static readonly LongDecimal[] DoublePowers = GC.AllocateUninitializedArray<LongDecimal>(2100);
 	private static readonly ConcurrentDictionary<int, MpzT> MantissaOverflows = [], ShiftedMantissaOverflows = [];
-	internal static readonly LongDecimal Two = new(Unsafe.As<MpzT>(MpuTTwo), MinMantissaLength);
 	private static readonly Lock lockObj = new();
 	private static bool DoublePowersInitialized = false;
 	private readonly MpzT m;
@@ -536,7 +535,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			+ "925771809939748748440583061614361119737614968029242314156248793549791233913958733285782855"
 			+ "475007774025720873812764193924021482458722699677112764791759808245678653715017762574980494"
 			+ "872768719993564063678247258700570764958995763628745976927846"), UnsignedLongDecimal.Zero, DefaultMantissaLength);
-	/// <summary>Gets the mathematical constant 10.</summary>
+	/// <summary>Gets the mathematical constant 2.</summary>
+	public static readonly LongDecimal Two = new(Unsafe.As<MpzT>(MpuTTwo), MinMantissaLength);
 	public static LongDecimal Zero { get; }
 		= new(MpuTPowerOf10(MinMantissaLength) * 18 + 1, UnsignedLongDecimal.Zero, MinMantissaLength);
 	private MpzT ZeroMantissa => ShiftedMantissaOverflow + 1;
@@ -847,7 +847,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public static LongDecimal AGM(LongDecimal x, LongDecimal y)
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
-		MpzT shiftedMantissaOverflow = MpuTPowerOf10(maxMantissaLength) * 18;
+		var shiftedMantissaOverflow = MpuTPowerOf10(maxMantissaLength) * 18;
 		if (Mpir.MpzCmp(x.m, x.NaNMantissa) == 0 || Mpir.MpzCmp(y.m, y.NaNMantissa) == 0)
 			return new(shiftedMantissaOverflow + 4, UnsignedLongDecimal.Zero, maxMantissaLength);
 		else if (Mpir.MpzCmp(x.m, x.ZeroMantissa) == 0 || Mpir.MpzCmp(y.m, y.ZeroMantissa) == 0)
