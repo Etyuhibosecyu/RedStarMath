@@ -1,22 +1,13 @@
 ﻿global using NStar.Core;
-global using NStar.Linq;
-global using NStar.Mpir;
 global using System;
-global using System.Buffers;
-global using System.Collections.Concurrent;
-global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.Numerics;
-global using System.Runtime.CompilerServices;
-global using System.Text;
-global using System.Threading;
 global using static NStar.Core.Extents;
-global using static NStar.Mpir.MpzT;
 
 namespace RedStarMath;
 /// <summary>
-/// Представляет базовое комплексное число в .NStar, как <see cref="System.Numerics.Complex"/>,
+/// Представляет базовое комплексное число в RedStarMath, как <see cref="System.Numerics.Complex"/>,
 /// только с бо́льшим количеством методов, с действительной и мнимой частями типа <see langword="double"/>.
 /// </summary>
 /// <param name="real">Действительная часть комплексного числа.</param>
