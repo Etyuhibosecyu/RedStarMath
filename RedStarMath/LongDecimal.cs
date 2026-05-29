@@ -1660,12 +1660,12 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		NumberFormatInfo nfi, StringBuilder result)
 	{
 		var exponent2 = exponent + 1;
-		if (exponent2.DecLength > 31)
+		if (exponent2.BitLength > 31)
 			return FormatExponential(mantissaDigits, exponent2, precision, nfi, result);
 		var decimalPosition = (int)exponent2; // Позиция десятичной точки
 		var exponentialLength = Math.Min(mantissaDigits.Length, precision + 1) + nfi.NumberDecimalSeparator.Length
 			+ Mpir.MpzSizeinbase(exponent2, 10) + (exponent2 >= 0 ? nfi.PositiveSign.Length : nfi.NegativeSign.Length) + 1;
-		int fixedLength;
+		long fixedLength;
 		if (decimalPosition <= 0)
 			fixedLength = -decimalPosition + nfi.NumberDecimalSeparator.Length
 				+ Math.Min(precision, mantissaDigits.Length) + 1;
@@ -2121,7 +2121,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 
 	private static LongDecimal LogInternal(LongDecimal value)
 	{
-		var m = GetArrayLength(value.MantissaLength * 5, 4);
+		var m = (int)GetArrayLength((long)value.MantissaLength * 83, 50);
 		var s = value * new LongDecimal(MpzT.One << m, value.MantissaLength);
 		return Pi.GetWithOtherML(value.MantissaLength) / AGM(One, 4 / s) / 2
 			- m * Ln2.GetWithOtherML(value.MantissaLength);
@@ -2164,6 +2164,18 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		if (Mpir.MpzCmp(shifted, MantissaOverflow * 10) == 0)
 			shiftAmount++;
 		return new((shifted - MantissaOverflow) << 1, x.e + y.e + (shiftAmount - maxMantissaLength), maxMantissaLength);
+	}
+
+	private LongDecimal NewtonExponent(LongDecimal frac)
+	{
+		var one = One.GetWithOtherML(MantissaLength + 100);
+		LongDecimal fracExponent = E.GetWithOtherML(MantissaLength + 100) * frac, prev;
+		do
+		{
+			prev = fracExponent;
+			fracExponent *= one + frac - LogInternal(fracExponent);
+		} while (fracExponent.e != prev.e || Mpir.MpzCmpabsUi((fracExponent.m >> 1) - (prev.m >> 1), 1000000) > 0);
+		return fracExponent.GetWithOtherML(MantissaLength);
 	}
 
 	private static LongDecimal MultiplyUiInternal(LongDecimal x, uint y, int mantissaLength)
@@ -2309,29 +2321,16 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var floor = Floor();
 		LongDecimal floorExponent = floor < 0 ? new(MpzT.One, (UnsignedLongDecimal)~floor, MantissaLength)
 			: new(MpzT.Zero, (UnsignedLongDecimal)floor, MantissaLength);
-		var fracOriginal = (GetWithOtherML(MantissaLength * 2) - floor) * Ln10.GetWithOtherML(MantissaLength * 2);
-		if (fracOriginal >= Two)
-			floorExponent *= E.GetWithOtherML(MantissaLength * 2).SquareInternal();
-		else if (fracOriginal >= One)
-			floorExponent *= E.GetWithOtherML(MantissaLength * 2);
-		fracOriginal = fracOriginal.Frac();
-		if (Mpir.MpzCmp(fracOriginal.m, fracOriginal.ZeroMantissa) == 0)
+		var frac = (GetWithOtherML(MantissaLength + 100) - floor) * Ln10.GetWithOtherML(MantissaLength + 100);
+		if (frac >= Two)
+			floorExponent *= E.GetWithOtherML(MantissaLength).SquareInternal();
+		else if (frac >= One)
+			floorExponent *= E.GetWithOtherML(MantissaLength);
+		frac = frac.Frac();
+		if (Mpir.MpzCmp(frac.m, frac.ZeroMantissa) == 0)
 			return floorExponent;
-		LongDecimal frac = fracOriginal.ReciprocInternal(), fracPow = frac;
-		LongDecimal factorial = new(MpzT.Zero, UnsignedLongDecimal.Zero, MantissaLength * 2);
-		LongDecimal rowSum = factorial + fracOriginal, prev;
-		var i = 2u;
-		do
-		{
-			prev = rowSum;
-#pragma warning disable IDE0079 // Удалить ненужное подавление
-#pragma warning disable S1121
-			rowSum += MultiplyInternal(fracPow = MultiplyInternal(fracPow, frac, MantissaLength * 2),
-				factorial = MultiplyUiInternal(factorial, i++, MantissaLength * 2), MantissaLength * 2).ReciprocInternal();
-#pragma warning restore S1121
-#pragma warning restore IDE0079 // Удалить ненужное подавление
-		} while (rowSum.e != prev.e || Mpir.MpzCmpabsUi((rowSum.m >> 1) - (prev.m >> 1), 1) > 0);
-		return floorExponent * rowSum.GetWithOtherML(MantissaLength);
+		var fracExponent = MantissaLength >= 3000 ? NewtonExponent(frac) : TaylorExponent(frac);
+		return floorExponent * fracExponent;
 	}
 
 	/// <summary>
@@ -2779,6 +2778,25 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	/// в остальных случаях - гиперболический тангенс <paramref name="value"/>.
 	/// </returns>
 	public static LongDecimal Tanh(LongDecimal value) => value.Tanh();
+
+	private LongDecimal TaylorExponent(LongDecimal fracOriginal)
+	{
+		LongDecimal frac = fracOriginal.ReciprocInternal(), fracPow = frac;
+		LongDecimal factorial = new(MpzT.Zero, UnsignedLongDecimal.Zero, MantissaLength + 100);
+		LongDecimal rowSum = factorial + fracOriginal, prev;
+		var i = 2u;
+		do
+		{
+			prev = rowSum;
+#pragma warning disable IDE0079 // Удалить ненужное подавление
+#pragma warning disable S1121
+			rowSum += MultiplyInternal(fracPow = MultiplyInternal(fracPow, frac, MantissaLength + 100),
+				factorial = MultiplyUiInternal(factorial, i++, MantissaLength + 100), MantissaLength + 100).ReciprocInternal();
+#pragma warning restore S1121
+#pragma warning restore IDE0079 // Удалить ненужное подавление
+		} while (rowSum.e != prev.e || Mpir.MpzCmpabsUi((rowSum.m >> 1) - (prev.m >> 1), 1) > 0);
+		return rowSum.GetWithOtherML(MantissaLength);
+	}
 
 	/// <summary>
 	/// Вычисляет тангенс данного числа.

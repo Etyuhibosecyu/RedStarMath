@@ -810,13 +810,19 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	public static Complex operator >>(Complex x, int shiftAmount) => x / Math.Pow(2, shiftAmount);
 	public static Complex operator ++(Complex value) => new(value.Real + 1d, value.Imaginary);
 	public static Complex operator --(Complex value) => new(value.Real - 1d, value.Imaginary);
+	/// <inheritdoc cref="operator ==(Complex, Complex)"/>
 	public static bool operator ==(double left, Complex right) => right == left;
+	/// <inheritdoc cref="operator ==(Complex, Complex)"/>
 	public static bool operator ==(Complex left, double right) =>
 		left.Real == right && left.Imaginary == 0d;
+	/// <inheritdoc cref="IEqualityOperators{Complex, Complex, bool}.operator =="/>
 	public static bool operator ==(Complex left, Complex right) => left.Real == right.Real && left.Imaginary == right.Imaginary;
+	/// <inheritdoc cref="operator !=(Complex, Complex)"/>
 	public static bool operator !=(double left, Complex right) => right != left;
+	/// <inheritdoc cref="operator !=(Complex, Complex)"/>
 	public static bool operator !=(Complex left, double right) =>
 		left.Real != right || left.Imaginary != 0d;
+	/// <inheritdoc cref="IEqualityOperators{Complex, Complex, bool}.operator !="/>
 	public static bool operator !=(Complex left, Complex right) => left.Real != right.Real || left.Imaginary != right.Imaginary;
 #pragma warning restore S1244
 #pragma warning disable S3877

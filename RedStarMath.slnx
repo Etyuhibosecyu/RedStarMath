@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../.NStar/Sources/NStar.Core/NStar.Core.csproj" />
   <Project Path="../.NStar/Sources/NStar.Dictionaries/NStar.Dictionaries.csproj" />
   <Project Path="../.NStar/Sources/NStar.Linq/NStar.Linq.csproj" />
   <Project Path="../.NStar/Sources/NStar.Mpir/NStar.Mpir.csproj" />
