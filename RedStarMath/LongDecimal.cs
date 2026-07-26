@@ -2123,8 +2123,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	{
 		var m = (int)GetArrayLength((long)value.MantissaLength * 83, 50);
 		var s = value * new LongDecimal(MpzT.One << m, value.MantissaLength);
-		return Pi.GetWithOtherML(value.MantissaLength) / AGM(One, 4 / s) / 2
-			- m * Ln2.GetWithOtherML(value.MantissaLength);
+		return Pi.GetWithOtherML(value.MantissaLength) / AGM(One, 4 / s) / 2 - m * Ln2.GetWithOtherML(value.MantissaLength);
 	}
 
 	/// <summary>Возвращает число x. Метод-заглушка, чтобы не удалять имя метода, если не осталось второго параметра.</summary>

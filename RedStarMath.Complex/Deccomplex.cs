@@ -1,9 +1,22 @@
-﻿namespace RedStarMath;
+﻿using NStar.Mpir;
+
+namespace RedStarMath;
 #pragma warning disable CA2260 // Используйте правильный параметр типа
 public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNumber<decimal, Deccomplex>
 #pragma warning restore CA2260 // Используйте правильный параметр типа
 {
 	private const string NoComparisons = "Ошибка, операции \"больше\" и \"меньше\" не определены для комплексных чисел.";
+
+	public Deccomplex(ReadOnlySpan<byte> bytes, int order) : this(bytes.Length < sizeof(decimal) << 1
+		? throw new ArgumentException("Ошибка, слишком короткая последовательность байт для преобразования в этот тип.")
+#pragma warning disable IDE0079 // Удалить ненужное подавление
+#pragma warning disable S1121
+		: new decimal([BitConverter.ToInt32(bytes), BitConverter.ToInt32(bytes = bytes[4..]),
+			BitConverter.ToInt32(bytes = bytes[4..]), BitConverter.ToInt32(bytes = bytes[4..])]),
+		new([BitConverter.ToInt32(bytes = bytes[4..]), BitConverter.ToInt32(bytes = bytes[4..]),
+			BitConverter.ToInt32(bytes = bytes[4..]), BitConverter.ToInt32(bytes[4..])])) => _ = order;
+#pragma warning restore S1121
+#pragma warning restore IDE0079 // Удалить ненужное подавление
 
 	public static Deccomplex AdditiveIdentity => Zero;
 	static Func<decimal, decimal, Deccomplex> IComplexNumber<decimal, Deccomplex>.Creator =>
@@ -279,7 +292,6 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 	public override int GetHashCode() => ((IComplexNumber<decimal, Deccomplex>)this).GetHashCodeInterface();
 	public static bool IsCanonical(Deccomplex value) => true;
 	public static bool IsComplexNumber(Deccomplex value) => true;
-#pragma warning disable IDE0079 // Удалить ненужное подавление
 	public static bool IsEvenInteger(Deccomplex value) => decimal.IsEvenInteger(value.Real) && value.Imaginary == 0m;
 	public static bool IsFinite(Deccomplex value) => true;
 	public static bool IsImaginaryNumber(Deccomplex value) => value.Imaginary != 0m;
@@ -432,14 +444,13 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 	public static Deccomplex MaxMagnitudeNumber(Deccomplex x, Deccomplex y) => Abs(x) > Abs(y) ? x : y;
 	public static Deccomplex MinMagnitude(Deccomplex x, Deccomplex y) => Abs(MinMagnitudeNumber(x, y));
 	public static Deccomplex MinMagnitudeNumber(Deccomplex x, Deccomplex y) => Abs(x) < Abs(y) ? x : y;
-	public static Deccomplex Parse(string s, IFormatProvider? provider) =>
-		System.Numerics.Complex.Parse(s, provider);
 	public static Deccomplex Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider) =>
-		System.Numerics.Complex.Parse(s, style, provider);
-	public static Deccomplex Parse(ReadOnlySpan<char> s, IFormatProvider? provider) =>
-		System.Numerics.Complex.Parse(s, provider);
+		decimal.TryParse(s, style, provider, out var result) ? result
+		: (Deccomplex)System.Numerics.Complex.Parse(s, style, provider);
+	public static Deccomplex Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => Parse(s, NumberStyles.None, provider);
+	public static Deccomplex Parse(string s, IFormatProvider? provider) => Parse(s, NumberStyles.None, provider);
 	public static Deccomplex Parse(string s, NumberStyles style, IFormatProvider? provider) =>
-		System.Numerics.Complex.Parse(s, style, provider);
+		Parse(s.AsSpan(), style, provider);
 
 	/// <summary>
 	/// Возводит данное число в указанную степень.
@@ -655,6 +666,26 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 	/// </returns>
 	public static Deccomplex Tanh(Deccomplex value) => IComplexNumber<decimal, Deccomplex>.TanhInterface(value);
 
+	/// <summary>
+	/// Преобразует данное число в массив байт.
+	/// </summary>
+	/// <param name="order">Порядок записи: &lt; 0 - Little Endian, &gt; 0 - Big Endian.</param>
+	/// <returns>Массив байт, из которого можно восстановить данное число,
+	/// с явным указанием длины мантиссы или без такового.</returns>
+	/// <remarks>
+	/// В данном типе порядок записи ни на что не влияет, оставлен только для унификации.
+	/// </remarks>
+	public byte[] ToByteArray(int order)
+	{
+		var bytes = GC.AllocateUninitializedArray<byte>(sizeof(decimal) << 1);
+		if (order < 0 && TryWriteLittleEndian(bytes, out var bytesWritten) && bytesWritten == bytes.Length)
+			return bytes;
+		else if (order > 0 && TryWriteBigEndian(bytes, out bytesWritten) && bytesWritten == bytes.Length)
+			return bytes;
+		else
+			throw new InvalidOperationException("Ошибка, не удалось преобразовать в массив байт.");
+	}
+
 	public override string ToString() => ((IComplexNumber<decimal, Deccomplex>)this).ToStringInterface();
 	public string ToString(IFormatProvider? formatProvider) =>
 		((IComplexNumber<decimal, Deccomplex>)this).ToStringInterface(formatProvider);
@@ -674,12 +705,19 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToTruncating<TOther>(Deccomplex value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Deccomplex result)
 	{
-		if (System.Numerics.Complex.TryParse(s, style, provider, out var other))
+		if (decimal.TryParse(s, style, provider, out var d))
 		{
-			result = other;
+			result = d;
+			return true;
+		}
+		else if (System.Numerics.Complex.TryParse(s, style, provider, out var nc))
+		{
+			result = (Deccomplex)nc;
 			return true;
 		}
 		else
@@ -695,11 +733,46 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 		TryParse(s, NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Deccomplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
-	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
-		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
+
+	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
+	/// <remarks>
+	/// В данном типе этот метод и <see cref="TryWriteLittleEndian"/> эквивалентны, оба оставлены только для унификации.
+	/// </remarks>
+	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+		TryWriteLittleEndian(destination, out bytesWritten);
+
+	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteLittleEndian"/>
+	/// <remarks>
+	/// В данном типе этот метод и <see cref="TryWriteBigEndian"/> эквивалентны, оба оставлены только для унификации.
+	/// </remarks>
+	public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
+	{
+		var bytes = destination;
+#pragma warning disable IDE0079 // Удалить ненужное подавление
+#pragma warning disable S1121
+		if (bytes.Length >= sizeof(decimal) << 1
+			&& BitConverter.TryWriteBytes(bytes,
+			CreateVar(MpzT.DecimalToInts(Real), out var tuple).Item3)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..], tuple.Item4)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..], tuple.Item2)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..], tuple.Item1)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..],
+			CreateVar(MpzT.DecimalToInts(Imaginary), out tuple).Item3)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..], tuple.Item4)
+			&& BitConverter.TryWriteBytes(bytes = bytes[4..], tuple.Item2)
+			&& BitConverter.TryWriteBytes(bytes[4..], tuple.Item1))
+#pragma warning restore S1121
+#pragma warning restore IDE0079 // Удалить ненужное подавление
+		{
+			bytesWritten = sizeof(decimal) << 1;
+			return true;
+		}
+		bytesWritten = 0;
+		return false;
+	}
 
 	public static implicit operator Deccomplex(decimal value) => new(value, 0m);
-	public static implicit operator Deccomplex(System.Numerics.Complex value) =>
+	public static explicit operator Deccomplex(System.Numerics.Complex value) =>
 		new((decimal)value.Real, (decimal)value.Imaginary);
 	public static explicit operator System.Numerics.Complex(Deccomplex value) =>
 		new((double)value.Real, (double)value.Imaginary);
@@ -745,6 +818,7 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 		left.Real != right || left.Imaginary != 0m;
 	public static bool operator !=(Deccomplex left, Deccomplex right) =>
 		left.Real != right.Real || left.Imaginary != right.Imaginary;
+#pragma warning disable IDE0079 // Удалить ненужное подавление
 #pragma warning disable S3877
 	static bool IComparisonOperators<Deccomplex, Deccomplex, bool>.operator >=(Deccomplex left, Deccomplex right) =>
 		throw new NotSupportedException(NoComparisons);

@@ -183,6 +183,40 @@ public class ComplexTests
 				nc /= op;
 				c /= op;
 				Validate();
+			}, () =>
+			{
+				System.Numerics.Complex op
+					= new(BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)),
+					BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)));
+				nc += op;
+				c += op;
+				Validate();
+			}, () =>
+			{
+				System.Numerics.Complex op
+					= new(BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)),
+					BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)));
+				nc -= op;
+				c -= op;
+				Validate();
+			}, () =>
+			{
+				System.Numerics.Complex op
+					= new(BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)),
+					BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)));
+				nc *= op;
+				c *= op;
+				Validate();
+			}, () =>
+			{
+				System.Numerics.Complex op
+					= new(BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)),
+					BitConverter.UInt64BitsToDouble((ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63)));
+				if (op.Equals(0))
+					return;
+				nc /= op;
+				c /= op;
+				Validate();
 			},
 		};
 		for (var i = 0; i < 1000; i++)

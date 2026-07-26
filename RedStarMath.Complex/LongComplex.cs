@@ -687,6 +687,8 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToTruncating<TOther>(LongComplex value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongComplex result)
 	{
@@ -708,8 +710,6 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 		TryParse(s, NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongComplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
-	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
-		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 
 	public static implicit operator LongComplex(LongReal value) => new(value, LongReal.Zero);
 	public static implicit operator LongComplex(Complex value) => new(value.Real, value.Imaginary);

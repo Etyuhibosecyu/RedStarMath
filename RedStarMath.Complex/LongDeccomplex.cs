@@ -700,6 +700,8 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToTruncating<TOther>(LongDeccomplex value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDeccomplex result)
 	{
@@ -721,8 +723,6 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 		TryParse(s, NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDeccomplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
-	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
-		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 
 	public static implicit operator LongDeccomplex(LongDecimal value) => new(value, LongDecimal.Zero);
 	public static implicit operator LongDeccomplex(Complex value) => new(value.Real, value.Imaginary);

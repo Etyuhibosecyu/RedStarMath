@@ -13,7 +13,7 @@ public class LongDecimalTests
 		var counter = 0;
 		List<byte> bytes = new(1024);
 	l1:
-		var d = ConstructDecimal(bytes);
+		var d = ConstructDecimal(bytes, random);
 		LongDecimal ld = new(d, MantissaLength);
 		Validate();
 		var actions = new[]
@@ -235,7 +235,7 @@ public class LongDecimalTests
 				ValidateRemainder(order - 52);
 			}, () =>
 			{
-				var op = ConstructDecimal(bytes);
+				var op = ConstructDecimal(bytes, random);
 				if ((double)d + (double)op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				d += op;
@@ -243,7 +243,7 @@ public class LongDecimalTests
 				Validate();
 			}, () =>
 			{
-				var op = ConstructDecimal(bytes);
+				var op = ConstructDecimal(bytes, random);
 				if ((double)d - (double)op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				d -= op;
@@ -251,7 +251,7 @@ public class LongDecimalTests
 				Validate();
 			}, () =>
 			{
-				var op = ConstructDecimal(bytes);
+				var op = ConstructDecimal(bytes, random);
 				if ((double)d * (double)op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				d *= op;
@@ -259,7 +259,7 @@ public class LongDecimalTests
 				Validate();
 			}, () =>
 			{
-				var op = ConstructDecimal(bytes);
+				var op = ConstructDecimal(bytes, random);
 				if (op.Equals(0))
 					return;
 				if ((double)d / (double)op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
@@ -269,7 +269,7 @@ public class LongDecimalTests
 				Validate();
 			}, () =>
 			{
-				var op = ConstructDecimal(bytes);
+				var op = ConstructDecimal(bytes, random);
 				var order = ld.Abs() < 1 ? -(int)(1 / ld).Order : (int)ld.Order;
 				if (op.Equals(0))
 					return;
@@ -281,7 +281,7 @@ public class LongDecimalTests
 		for (var i = 0; i < 1000; i++)
 		{
 			if (random.Next(100) == 0)
-				d = ConstructDecimal(bytes);
+				d = ConstructDecimal(bytes, random);
 			ld = new(d, MantissaLength);
 			actions.Random(random)();
 		}
@@ -291,7 +291,7 @@ public class LongDecimalTests
 		void ValidateRemainder(int validOrder) => Assert.IsTrue(Abs(d - (decimal)ld) < ((LongDecimal)1).Shift(validOrder));
 	}
 
-	private static decimal ConstructDecimal(List<byte> bytes)
+	private static decimal ConstructDecimal(List<byte> bytes, Random random)
 	{
 		bytes.FillInPlace(random.Next(17), _ => (byte)random.Next(256));
 		if (random.Next(2) == 0)
@@ -406,9 +406,9 @@ public class LongDecimalTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 10000000; i++)
 		{
-			var d = ConstructDecimal(bytes);
+			var d = ConstructDecimal(bytes, random);
 			LongDecimal ld = new(d, MantissaLength);
-			var d2 = random.Next(1000) == 0 ? d : ConstructDecimal(bytes);
+			var d2 = random.Next(1000) == 0 ? d : ConstructDecimal(bytes, random);
 			LongDecimal ld2 = new(d2, (int)Round(MantissaLength * (random.NextDouble() * 2 - 1)));
 			if (LongDecimal.IsNaN(ld) || LongDecimal.IsNaN(ld2))
 				Assert.AreEqual(int.MinValue, ld.CompareTo(ld2));
@@ -634,7 +634,7 @@ public class LongDecimalTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 10000; i++)
 		{
-			var d = ConstructDecimal(bytes);
+			var d = ConstructDecimal(bytes, random);
 			LongDecimal ld = new(d, MantissaLength);
 			if (LongDecimal.IsNaN(ld))
 			{

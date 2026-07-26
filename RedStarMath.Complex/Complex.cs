@@ -18,9 +18,9 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 {
 	private const string NoComparisons = "Ошибка, операции \"больше\" и \"меньше\" не определены для комплексных чисел.";
 
-	public Complex(ReadOnlySpan<byte> bytes, int order) : this(bytes is var arr && arr.Length < sizeof(double) << 1
+	public Complex(ReadOnlySpan<byte> bytes, int order) : this(bytes.Length < sizeof(double) << 1
 		? throw new ArgumentException("Ошибка, слишком короткая последовательность байт для преобразования в этот тип.")
-		: BitConverter.ToDouble(arr), BitConverter.ToDouble(arr[sizeof(double)..])) => _ = order;
+		: BitConverter.ToDouble(bytes), BitConverter.ToDouble(bytes[sizeof(double)..])) => _ = order;
 
 	public static Complex AdditiveIdentity => Zero;
 	static Func<double, double, Complex> IComplexNumber<double, Complex>.Creator => (real, imaginary) => new(real, imaginary);
@@ -733,6 +733,8 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToTruncating<TOther>(Complex value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Complex result)
 	{
@@ -753,8 +755,6 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 		TryParse(s, NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Complex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
-	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
-		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	/// <remarks>
