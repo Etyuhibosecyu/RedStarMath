@@ -142,7 +142,7 @@ public sealed class UnsignedLongDecimal : IUnsignedLongReal<UnsignedLongDecimal>
 	static UnsignedLongDecimal IFloatingPointConstants<UnsignedLongDecimal>.E => throw new NotSupportedException();
 	UnsignedLongDecimal? IUnsignedLongReal<UnsignedLongDecimal>.Exponent => e;
 	MpuT IUnsignedLongReal<UnsignedLongDecimal>.Mantissa => m;
-	private int MantissaByteLength => (int)Math.Ceiling((MantissaLength + Math.Log10(9)) * Math.Log(10, 256));
+	private int MantissaByteLength => (int)Math.Ceiling((MantissaLength + Math.Log10(9d)) * Math.Log(10d, 256d));
 	int IUnsignedLongReal<UnsignedLongDecimal>.MantissaByteLength => MantissaByteLength;
 	int IUnsignedLongReal<UnsignedLongDecimal>.MantissaLength => MantissaLength;
 	private MpuT MantissaMask => MantissaMasks.GetOrAdd(MantissaLength, x => MpuT.PowerOf10(x) * 9 - 1);

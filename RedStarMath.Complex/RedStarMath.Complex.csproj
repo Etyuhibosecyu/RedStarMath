@@ -4,7 +4,6 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="McNeight.MathM" Version="1.0.0" />
 		<ProjectReference Include="..\RedStarMath\RedStarMath.csproj" />
 	</ItemGroup>
 </Project>

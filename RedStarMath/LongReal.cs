@@ -784,7 +784,6 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	/// <returns>
 	/// Для нуля - ноль;<br />
 	/// для плюс бесконечности, минус бесконечности и неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический арктангенс данного числа.
 	/// </returns>
 	public LongReal Atanh() => Ln((One + this) / (One - this)) >> 1;
@@ -797,7 +796,6 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	/// <returns>
 	/// Для нуля - ноль;<br />
 	/// для плюс бесконечности, минус бесконечности и неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический арктангенс данного числа.
 	/// </returns>
 	public static LongReal Atanh(LongReal value) => value.Atanh();
@@ -1064,7 +1062,6 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	/// Для нуля - единица;<br />
 	/// для плюс бесконечности и минус бесконечности - плюс бесконечность;<br />
 	/// для неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше <see cref="Pi"/> &lt;&lt; <see cref="MantissaLength"/> + 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический косинус данного числа.
 	/// </returns>
 	public LongReal Cosh()
@@ -1082,7 +1079,6 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	/// Для нуля - единица;<br />
 	/// для плюс бесконечности и минус бесконечности - плюс бесконечность;<br />
 	/// для неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше <see cref="Pi"/> &lt;&lt; <see cref="MantissaLength"/> + 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический косинус <paramref name="value"/>.
 	/// </returns>
 	public static LongReal Cosh(LongReal value) => value.Cosh();

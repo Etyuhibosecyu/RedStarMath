@@ -368,11 +368,11 @@ public class ComplexTests
 			var c3 = c.Acos();
 			var nc4 = System.Numerics.Complex.Atan(nc);
 			var c4 = c.Atan();
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Pow(2, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
 				System.Numerics.Complex.Abs(nc2 - (System.Numerics.Complex)c2));
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Pow(2, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
 				System.Numerics.Complex.Abs(nc3 - (System.Numerics.Complex)c3));
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Pow(2, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
 				System.Numerics.Complex.Abs(nc4 - (System.Numerics.Complex)c4));
 		}
 	}
@@ -408,7 +408,7 @@ public class ComplexTests
 			else
 			{
 				var log = System.Numerics.Complex.Log(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)c.Log()));
 			}
 		}
@@ -446,7 +446,7 @@ public class ComplexTests
 			else
 			{
 				var log = System.Numerics.Complex.Pow(new(3, 0), nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)complexThree.Power(c)));
 			}
 		}
@@ -481,7 +481,7 @@ public class ComplexTests
 			if (c == 0)
 				Assert.IsTrue(c.Reciproc() == Complex.PositiveInfinity);
 			else
-				Assert.IsLessThanOrEqualTo(System.Numerics.Complex.Abs(System.Numerics.Complex.Reciprocal(nc)) / Pow(2, 52),
+				Assert.IsLessThanOrEqualTo(Math.Shift(System.Numerics.Complex.Abs(System.Numerics.Complex.Reciprocal(nc)), -52),
 					(System.Numerics.Complex.Reciprocal(nc) - c.Reciproc()).Abs());
 		}
 	}
@@ -516,8 +516,8 @@ public class ComplexTests
 			System.Numerics.Complex nc = new(r, r2);
 			Complex c = new(r, r2);
 			var shiftAmount = random.Next(257);
-			Assert.AreEqual(nc * Pow(2, shiftAmount), (System.Numerics.Complex)(c << shiftAmount));
-			Assert.AreEqual(nc / Pow(2, shiftAmount), (System.Numerics.Complex)(c >> shiftAmount));
+			Assert.AreEqual(nc * Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(c << shiftAmount));
+			Assert.AreEqual(nc / Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(c >> shiftAmount));
 		}
 	}
 
@@ -552,7 +552,7 @@ public class ComplexTests
 			else
 			{
 				var sqrt = System.Numerics.Complex.Sqrt(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sqrt), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sqrt), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(sqrt - (System.Numerics.Complex)c.Sqrt()));
 			}
 		}
@@ -671,34 +671,34 @@ public class ComplexTests
 	public void TestTrigonometry()
 	{
 		var random = Lock(lockObj, () => new Random(Global.random.Next()));
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - Complex.Zero.Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (1 - (Complex.Pi >> 1).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - Complex.Pi.Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (-1 - (3 * Complex.Pi >> 1).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (Complex.Pi << 1).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (-1 - (-Complex.Pi >> 1).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (-Complex.Pi).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (1 - (-3 * Complex.Pi >> 1).Sin()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (-Complex.Pi << 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - Complex.Zero.Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (1 - (Complex.Pi >> 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - Complex.Pi.Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (-1 - (3 * Complex.Pi >> 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (Complex.Pi << 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (-1 - (-Complex.Pi >> 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (-Complex.Pi).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (1 - (-3 * Complex.Pi >> 1).Sin()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (-Complex.Pi << 1).Sin()).Abs());
 		Assert.IsTrue(Complex.IsNaN(Complex.PositiveInfinity.Sin()));
 		Assert.IsTrue(Complex.IsNaN(Complex.NegativeInfinity.Sin()));
 		Assert.IsTrue(Complex.IsNaN(Complex.NaN.Sin()));
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (1 - Complex.Zero.Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (Complex.Pi >> 1).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (-1 - Complex.Pi.Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (3 * Complex.Pi >> 1).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (1 - (Complex.Pi << 1).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (-Complex.Pi >> 1).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (-1 - (-Complex.Pi).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (0 - (-3 * Complex.Pi >> 1).Cos()).Abs());
-		Assert.IsLessThanOrEqualTo(Pow(2, -50), (1 - (-Complex.Pi << 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (1 - Complex.Zero.Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (Complex.Pi >> 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (-1 - Complex.Pi.Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (3 * Complex.Pi >> 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (1 - (Complex.Pi << 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (-Complex.Pi >> 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (-1 - (-Complex.Pi).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (0 - (-3 * Complex.Pi >> 1).Cos()).Abs());
+		Assert.IsLessThanOrEqualTo(Math.Shift(1d, -50), (1 - (-Complex.Pi << 1).Cos()).Abs());
 		Assert.IsTrue(Complex.IsNaN(Complex.PositiveInfinity.Cos()));
 		Assert.IsTrue(Complex.IsNaN(Complex.NegativeInfinity.Cos()));
 		Assert.IsTrue(Complex.IsNaN(Complex.NaN.Cos()));
 		for (var i = 0; i < 10000; i++)
 		{
-			var r = Pow(2, random.NextDouble() * 128 - 64);
-			var r2 = Pow(2, random.NextDouble() * 128 - 64);
+			var r = Math.Power(2, random.NextDouble() * 128 - 64);
+			var r2 = Math.Power(2, random.NextDouble() * 128 - 64);
 			System.Numerics.Complex nc = new(r, r2);
 			Complex c = new(r, r2);
 			if (Complex.IsNaN(c))
@@ -710,12 +710,12 @@ public class ComplexTests
 			else
 			{
 				var sin = System.Numerics.Complex.Sin(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(sin - (System.Numerics.Complex)c.Sin()));
 				var cos = System.Numerics.Complex.Cos(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(cos), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(cos), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(cos - (System.Numerics.Complex)c.Cos()));
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin / cos), 1d) / Pow(2, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin / cos), 1d) / Math.Shift(1d, 50),
 					System.Numerics.Complex.Abs(sin / cos - (System.Numerics.Complex)c.Tan()));
 			}
 		}

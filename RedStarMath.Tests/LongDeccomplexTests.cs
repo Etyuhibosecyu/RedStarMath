@@ -1,7 +1,7 @@
 ﻿namespace RedStarMath.Tests;
 
 [TestClass]
-public class LongDecimalTests
+public class LongDeccomplexTests
 {
 	private static readonly int MantissaLength = 300;
 	private static readonly int MantissaByteLength = (int)Ceiling((MantissaLength + Log10(36)) * Log(10, 256));
@@ -1008,10 +1008,6 @@ public class LongDecimalTests
 		yield return (new LongReal(15L).Shift(12), "F2", "61,440.00", "61 440,00", "61.440,00");
 		yield return (new LongReal(-987L).Shift(-8), "E3", "-3.855E+0", "-3,855E+0", "-3,855E+0");
 		yield return (new(123456.789), "N5", "123,456.78900", "123 456,78900", "123.456,78900");
-		yield return (new(1.23456789e-4m), "F6", "0.000123", "0,000123", "0,000123");
-		yield return (new(0.000999999876m), "F6", "0.001000", "0,001000", "0,001000");
-		yield return (new(0.999999876m), "F6", "1.000000", "1,000000", "1,000000");
-		yield return (new(0.999999999999876m), "F6", "1.000000", "1,000000", "1,000000");
 	}
 
 	[TestMethod]

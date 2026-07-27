@@ -802,10 +802,10 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 		throw new NotSupportedException("Ошибка, остаток от деления не определен для комплексных чисел.");
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator {{"/>
 	public static Deccomplex operator <<(Deccomplex x, int shiftAmount) =>
-		x * IComplexNumber<decimal, Deccomplex>.Pow(2, shiftAmount);
+		x * Math.Shift(1m, shiftAmount);
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
 	public static Deccomplex operator >>(Deccomplex x, int shiftAmount) =>
-		x / IComplexNumber<decimal, Deccomplex>.Pow(2, shiftAmount);
+		x * Math.Shift(1m, -shiftAmount);
 	public static Deccomplex operator ++(Deccomplex value) => new(value.Real + 1m, value.Imaginary);
 	public static Deccomplex operator --(Deccomplex value) => new(value.Real - 1m, value.Imaginary);
 	public static bool operator ==(decimal left, Deccomplex right) => right == left;

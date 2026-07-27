@@ -4,6 +4,7 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.Numerics;
 global using static NStar.Core.Extents;
+global using static RedStarMath.Math;
 
 namespace RedStarMath;
 /// <summary>
@@ -805,9 +806,9 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	static Complex IModulusOperators<Complex, Complex, Complex>.operator %(Complex left, Complex right) =>
 		throw new NotSupportedException("Ошибка, остаток от деления не определен для комплексных чисел.");
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator {{"/>
-	public static Complex operator <<(Complex x, int shiftAmount) => x * Math.Pow(2, shiftAmount);
+	public static Complex operator <<(Complex x, int shiftAmount) => x * Math.Shift(1d, shiftAmount);
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
-	public static Complex operator >>(Complex x, int shiftAmount) => x / Math.Pow(2, shiftAmount);
+	public static Complex operator >>(Complex x, int shiftAmount) => x * Math.Shift(1d, -shiftAmount);
 	public static Complex operator ++(Complex value) => new(value.Real + 1d, value.Imaginary);
 	public static Complex operator --(Complex value) => new(value.Real - 1d, value.Imaginary);
 	/// <inheritdoc cref="operator ==(Complex, Complex)"/>

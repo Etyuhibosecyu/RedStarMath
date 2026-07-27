@@ -263,7 +263,7 @@ public class LongRealTests
 			if (LongReal.IsNaN(lr) || LongReal.IsNaN(lr2) || lr == 0 && lr2 == 0)
 				Assert.IsTrue(LongReal.IsNaN(LongReal.Atan2(lr, lr2)));
 			else
-				Assert.IsLessThanOrEqualTo(Pow(2, -52), Abs(Atan2(r, r2) - (double)LongReal.Atan2(lr, lr2)));
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Atan2(r, r2) - (double)LongReal.Atan2(lr, lr2)));
 		}
 	}
 
@@ -587,13 +587,13 @@ public class LongRealTests
 	[TestMethod]
 	public void TestPower()
 	{
-		var random = Lock(lockObj, () => new Random(Global.random.Next()));
 		var longRealThree = new LongReal(3);
 		Assert.AreEqual(LongReal.One, longRealThree.Power(LongReal.Zero));
 		Assert.AreEqual(LongReal.PositiveInfinity, longRealThree.Power(LongReal.PositiveInfinity));
 		Assert.AreEqual(LongReal.Zero, longRealThree.Power(LongReal.NegativeInfinity));
 		Assert.IsTrue(LongReal.IsNaN(longRealThree.Power(LongReal.NaN)));
 		Assert.AreEqual(longRealThree, longRealThree.Power(LongReal.One));
+		var random = Lock(lockObj, () => new Random(Global.random.Next()));
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 5000; i++)
 		{
@@ -661,10 +661,10 @@ public class LongRealTests
 			var r = BitConverter.ToDouble(bytes.AsSpan());
 			LongReal lr = new(r, MantissaLength);
 			var shiftAmount = random.Next(257);
-			Assert.AreEqual(r * Pow(2, shiftAmount), (double)(lr << shiftAmount));
-			Assert.AreEqual(r * Pow(2, shiftAmount), (double)(lr << (UnsignedLongReal)shiftAmount));
-			Assert.AreEqual(r / Pow(2, shiftAmount), (double)(lr >> shiftAmount));
-			Assert.AreEqual(r / Pow(2, shiftAmount), (double)(lr >> (UnsignedLongReal)shiftAmount));
+			Assert.AreEqual(r * Math.Shift(1d, shiftAmount), (double)(lr << shiftAmount));
+			Assert.AreEqual(r * Math.Shift(1d, shiftAmount), (double)(lr << (UnsignedLongReal)shiftAmount));
+			Assert.AreEqual(r / Math.Shift(1d, shiftAmount), (double)(lr >> shiftAmount));
+			Assert.AreEqual(r / Math.Shift(1d, shiftAmount), (double)(lr >> (UnsignedLongReal)shiftAmount));
 		}
 		for (var i = 0; i < 1000000; i++)
 		{
@@ -831,12 +831,15 @@ public class LongRealTests
 		yield return (new LongReal(15L).Shift(12), "F2", "61,440.00", "61 440,00", "61.440,00");
 		yield return (new LongReal(-987L).Shift(-8), "E3", "-3.855E+0", "-3,855E+0", "-3,855E+0");
 		yield return (new(123456.789), "N5", "123,456.78900", "123 456,78900", "123.456,78900");
+		yield return (new(1.23456789e-4), "F6", "0.000123", "0,000123", "0,000123");
+		yield return (new(0.000999999876), "F6", "0.001000", "0,001000", "0,001000");
+		yield return (new(0.999999876), "F6", "1.000000", "1,000000", "1,000000");
+		yield return (new(0.999999999999876), "F6", "1.000000", "1,000000", "1,000000");
 	}
 
 	[TestMethod]
 	public void TestTrigonometry()
 	{
-		var random = Lock(lockObj, () => new Random(Global.random.Next()));
 		Assert.AreEqual(0, LongReal.Zero.Sin());
 		Assert.AreEqual(1, (LongReal.Pi >> 1).Sin());
 		Assert.AreEqual(0, LongReal.Pi.Sin());
@@ -861,6 +864,7 @@ public class LongRealTests
 		Assert.IsTrue(LongReal.IsNaN(LongReal.PositiveInfinity.Cos()));
 		Assert.IsTrue(LongReal.IsNaN(LongReal.NegativeInfinity.Cos()));
 		Assert.IsTrue(LongReal.IsNaN(LongReal.NaN.Cos()));
+		var random = Lock(lockObj, () => new Random(Global.random.Next()));
 		for (var i = 0; i < 10000; i++)
 		{
 			var r = Pow(2, random.NextDouble() * 128 - 64);
@@ -873,9 +877,9 @@ public class LongRealTests
 			}
 			else
 			{
-				Assert.IsLessThanOrEqualTo(Pow(2, -52), Abs(Sin(r) - (double)lr.Sin()));
-				Assert.IsLessThanOrEqualTo(Pow(2, -52), Abs(Cos(r) - (double)lr.Cos()));
-				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1) / Pow(2, 52), Abs(Tan(r) - (double)lr.Tan()));
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Sin(r) - (double)lr.Sin()));
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Cos(r) - (double)lr.Cos()));
+				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1) / Math.Shift(1d, 52), Abs(Tan(r) - (double)lr.Tan()));
 			}
 		}
 		for (var i = 0; i < 10000; i++)

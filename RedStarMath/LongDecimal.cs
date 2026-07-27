@@ -428,7 +428,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			+ "629091963578797576191626195406588836909995079351169377043039857960156878955705499881387366"
 			+ "592520675293939028563833094202269696561962319807783403264520396006671766687690694765674051"
 			+ "356046367723730261012441592281299233034394883966725210502499"), UnsignedLongDecimal.Zero, DefaultMantissaLength);
-	private int MantissaByteLength => (int)Math.Ceiling((MantissaLength + Math.Log10(36)) * Math.Log(10, 256));
+	private int MantissaByteLength => (int)Math.Ceiling((MantissaLength + Math.Log10(36d)) * Math.Log(10d, 256d));
 	private MpzT MantissaOverflow => MantissaOverflows.GetOrAdd(MantissaLength, MpuTPowerOf10);
 	public static LongDecimal MultiplicativeIdentity => One;
 	public static LongDecimal NaN { get; }
@@ -536,7 +536,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			+ "475007774025720873812764193924021482458722699677112764791759808245678653715017762574980494"
 			+ "872768719993564063678247258700570764958995763628745976927846"), UnsignedLongDecimal.Zero, DefaultMantissaLength);
 	/// <summary>Gets the mathematical constant 2.</summary>
-	public static readonly LongDecimal Two = new(Unsafe.As<MpzT>(MpuTTwo), MinMantissaLength);
+	public static LongDecimal Two { get; } = new(Unsafe.As<MpzT>(MpuTTwo), MinMantissaLength);
 	public static LongDecimal Zero { get; }
 		= new(MpuTPowerOf10(MinMantissaLength) * 18 + 1, UnsignedLongDecimal.Zero, MinMantissaLength);
 	private MpzT ZeroMantissa => ShiftedMantissaOverflow + 1;
@@ -1353,13 +1353,12 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	/// Для нуля - единица;<br />
 	/// для плюс бесконечности и минус бесконечности - плюс бесконечность;<br />
 	/// для неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше <see cref="Pi"/> &lt;&lt; <see cref="MantissaLength"/> + 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический косинус данного числа.
 	/// </returns>
 	public LongDecimal Cosh()
 	{
 		var exp = Exp();
-		return exp + exp.Reciproc() / 2;
+		return (exp + exp.Reciproc()) / 2;
 	}
 
 	/// <summary>
@@ -1371,7 +1370,6 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	/// Для нуля - единица;<br />
 	/// для плюс бесконечности и минус бесконечности - плюс бесконечность;<br />
 	/// для неопределенности - неопределенность;<br />
-	/// для чисел, модуль которых больше <see cref="Pi"/> &lt;&lt; <see cref="MantissaLength"/> + 1 - неопределенность;<br />
 	/// в остальных случаях - гиперболический косинус <paramref name="value"/>.
 	/// </returns>
 	public static LongDecimal Cosh(LongDecimal value) => value.Cosh();
@@ -1595,11 +1593,26 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var decimalPosition = (int)exponent; // Позиция десятичной точки
 		if (decimalPosition <= 0)
 		{
+			var shiftAmount = Math.Max(mantissaDigits.Length - decimalPosition - precision, 0);
+			MpuT? shifted;
+			if (MpuT.TryParse(mantissaDigits, out var uz))
+				shifted = uz.ShiftRightRoundDec(shiftAmount);
+			else
+				shifted = uz = MpuT.One;
+			if (shifted.DecLength != uz.DecLength - shiftAmount)
+				decimalPosition++;
 			// Очень маленькое число — добавляем ведущие нули
-			result.Append('0').Append(nfi.NumberDecimalSeparator);
-			result.Append('0', -decimalPosition);
-			result.Append(MpuT.TryParse(mantissaDigits, out var uz)
-				&& uz.ShiftRightRoundDec(Math.Max(mantissaDigits.Length - precision, 0)).ToString() is var s ? s! : "1");
+			if (decimalPosition <= 0)
+			{
+				result.Append('0').Append(nfi.NumberDecimalSeparator);
+				result.Append('0', -decimalPosition);
+				result.Append(shifted.ToString());
+			}
+			else
+			{
+				result.Append('1').Append(nfi.NumberDecimalSeparator);
+				result.Append('0', precision);
+			}
 		}
 		else if (decimalPosition >= mantissaDigits.Length)
 		{
@@ -1630,7 +1643,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		exponent++;
 		if (exponent.DecLength > 31)
 			throw new FormatException("Слишком большое или слишком маленькое число"
-				+ " для форматирования с фиксированной точккой!");
+				+ " для форматирования с фиксированной точкой!");
 		var decimalPosition = (int)exponent; // Позиция десятичной точки
 		if (decimalPosition <= 0)
 		{
@@ -2318,18 +2331,18 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					+ $" ThreadId={Environment.CurrentManagedThreadId}, Timestamp={DateTime.UtcNow}"),
 			}, UnsignedLongDecimal.Zero, MantissaLength);
 		var floor = Floor();
-		LongDecimal floorExponent = floor < 0 ? new(MpzT.One, (UnsignedLongDecimal)~floor, MantissaLength)
-			: new(MpzT.Zero, (UnsignedLongDecimal)floor, MantissaLength);
+		LongDecimal floorExponent = floor < 0 ? new(MpzT.One, (UnsignedLongDecimal)~floor, MantissaLength + 100)
+			: new(MpzT.Zero, (UnsignedLongDecimal)floor, MantissaLength + 100);
 		var frac = (GetWithOtherML(MantissaLength + 100) - floor) * Ln10.GetWithOtherML(MantissaLength + 100);
 		if (frac >= Two)
-			floorExponent *= E.GetWithOtherML(MantissaLength).SquareInternal();
+			floorExponent *= E.GetWithOtherML(MantissaLength + 100).SquareInternal();
 		else if (frac >= One)
-			floorExponent *= E.GetWithOtherML(MantissaLength);
+			floorExponent *= E.GetWithOtherML(MantissaLength + 100);
 		frac = frac.Frac();
 		if (Mpir.MpzCmp(frac.m, frac.ZeroMantissa) == 0)
 			return floorExponent;
 		var fracExponent = MantissaLength >= 3000 ? NewtonExponent(frac) : TaylorExponent(frac);
-		return floorExponent * fracExponent;
+		return (floorExponent * fracExponent).GetWithOtherML(MantissaLength);
 	}
 
 	/// <summary>
@@ -2599,7 +2612,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public LongDecimal Sinh()
 	{
 		var exp = Exp();
-		return exp - exp.Reciproc() / 2;
+		return (exp - exp.Reciproc()) / 2;
 	}
 
 	/// <summary>
@@ -2612,7 +2625,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	/// для плюс бесконечности, минус бесконечности и неопределенности - неопределенность;<br />
 	/// в остальных случаях - гиперболический синус <paramref name="value"/>.
 	/// </returns>
-	public static LongDecimal Sinh(LongDecimal value) => value.Cosh();
+	public static LongDecimal Sinh(LongDecimal value) => value.Sinh();
 
 	/// <summary>
 	/// Вычисляет квадратный корень данного числа.
@@ -2762,7 +2775,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	/// </returns>
 	public LongDecimal Tanh()
 	{
-		var exp = (this << 1).Exp();
+		var exp = (this * 2).Exp();
 		return (exp - 1) / (exp + 1);
 	}
 
@@ -2937,10 +2950,16 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		if ((m & 1) != 0)
 			exponent = ~exponent;
 		mantissa += MantissaOverflow;
-		mantissa = mantissa.ShiftRightRoundDec(mantissa.DecLength - 1
+		var shiftAmount = mantissa.DecLength - 1
 			- (int)(formatSpecifier is 'F' or 'N' && Mpir.MpzCmpSi(exponent, int.MaxValue) <= 0
-			&& Mpir.MpzCmpSi(exponent, 0) > 0 ? (uint)exponent + precision : precision));
-		return Format(mantissa.ToString()?.TrimEnd('0'), exponent, negative, format, nfi);
+			&& Mpir.MpzCmpSi(exponent, 0) > 0 ? (uint)exponent + precision : precision);
+		var shiftedMantissa = mantissa.ShiftRightRoundDec(shiftAmount);
+		if (shiftedMantissa.DecLength != mantissa.DecLength - shiftAmount)
+		{
+			exponent++;
+			shiftedMantissa = mantissa.ShiftRightRoundDec(shiftAmount + 1);
+		}
+		return Format(shiftedMantissa.ToString()?.TrimEnd('0'), exponent, negative, format, nfi);
 	}
 
 	object IConvertible.ToType(Type conversionType, IFormatProvider? provider)
@@ -3304,6 +3323,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			if ((value.m & 1) != 0)
 			{
 				exponent = (byte)(value.e + 1);
+				if (mantissa2.DecLength != mantissa.DecLength - (value.MantissaLength - 28))
+					exponent--;
 				while (true)
 				{
 					var quotient = mantissa2.Divide(10, out var remainder);

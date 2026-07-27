@@ -1,17 +1,4 @@
-﻿global using NStar.Core;
-global using NStar.Core.Tests;
-global using NStar.Linq;
-global using NStar.Mpir;
-global using System;
-global using System.Globalization;
-global using System.Numerics;
-global using static NStar.Core.Extents;
-global using static NStar.Core.Tests.Global;
-global using static System.Math;
-global using E = System.Linq.Enumerable;
-global using G = System.Collections.Generic;
-
-namespace RedStarMath.Tests;
+﻿namespace RedStarMath.Tests;
 
 [TestClass]
 public class UnsignedLongRealTests

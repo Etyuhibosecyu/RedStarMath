@@ -1,7 +1,4 @@
-﻿using McNeight;
-using System.Runtime.CompilerServices;
-
-namespace RedStarMath;
+﻿namespace RedStarMath;
 
 internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 	where T : struct, IFloatingPoint<T> where TSelf : struct, IComplexNumber<T, TSelf>
@@ -24,14 +21,12 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 	};
 
 	public T Real { get; }
-
-	private static object? SinTableObj { get; set; }
 	public static TSelf ZeroInterface { get; } = TSelf.Creator(T.Zero, T.Zero);
 
 	private static T Abs(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Abs(r)),
-		decimal d => T.CreateTruncating(Math.Abs(d)),
+		double r => T.CreateTruncating(System.Math.Abs(r)),
+		decimal d => T.CreateTruncating(System.Math.Abs(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Abs(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Abs(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -45,19 +40,19 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		// |value| == sqrt(a^2 + b^2)
 		// sqrt(a^2 + b^2) == a/a * sqrt(a^2 + b^2) = a * sqrt(a^2/a^2 + b^2/a^2)
 		// Using the above we can factor out the square of the larger component to dodge overflow.
-		var c = T.Abs(value.Real);
-		var d = T.Abs(value.Imaginary);
-		if (c > d)
+		var re = T.Abs(value.Real);
+		var im = T.Abs(value.Imaginary);
+		if (re > im)
 		{
-			var r = d / c;
-			return c * Sqrt(T.One + r * r);
+			var r = im / re;
+			return re * Sqrt(T.One + r * r);
 		}
-		else if (d == T.Zero)
-			return c;
+		else if (im == T.Zero)
+			return re;
 		else
 		{
-			var r = c / d;
-			return d * Sqrt(T.One + r * r);
+			var r = re / im;
+			return im * Sqrt(T.One + r * r);
 		}
 	}
 
@@ -77,39 +72,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			- LogInterface(OneInterface + ImaginaryOne * value));
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static decimal Atan2(decimal y, decimal x)
-	{
-		if (x == 0m && y == 0m)
-			return 0m;
-		if (x == 0m)
-		{
-			if (y > 0m)
-				return 1.5707963267948966192313216916m;
-			return -1.5707963267948966192313216916m;
-		}
-		if (y == 0m)
-		{
-			if (x <= 0m)
-				return 3.1415926535897932384626433833m;
-			return 0m;
-		}
-		if (MathM.Abs(x) < 1 && y > MathM.Abs(x) * decimal.MaxValue)
-			return 1.5707963267948966192313216916m;
-		if (MathM.Abs(x) < 1 && y < MathM.Abs(x) * decimal.MinValue)
-			return -1.5707963267948966192313216916m;
-		var num = MathM.Atan(y / x);
-		if (x > 0m)
-			return num;
-		if (y <= 0m)
-			return num - 3.1415926535897932384626433833m;
-		return num + 3.1415926535897932384626433833m;
-	}
-
 	private static T Atan2(T yValue, T xValue) => (yValue, xValue) switch
 	{
-		(double yValue2, double xValue2) => T.CreateTruncating(Math.Atan2(yValue2, xValue2)),
-		(decimal yValue2, decimal xValue2) => T.CreateTruncating(Atan2(yValue2, xValue2)),
+		(double yValue2, double xValue2) => T.CreateTruncating(System.Math.Atan2(yValue2, xValue2)),
+		(decimal yValue2, decimal xValue2) => T.CreateTruncating(Math.Atan2(yValue2, xValue2)),
 		(LongReal yValue2, LongReal xValue2) => T.CreateTruncating(LongReal.Atan2(yValue2, xValue2)),
 		(LongDecimal yValue2, LongDecimal xValue2) => T.CreateTruncating(LongDecimal.Atan2(yValue2, xValue2)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -123,8 +89,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Cos(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Cos(r)),
-		decimal d => T.CreateTruncating(MathM.Cos(d)),
+		double r => T.CreateTruncating(System.Math.Cos(r)),
+		decimal d => T.CreateTruncating(Math.Cos(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cos(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Cos(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -140,8 +106,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Cosh(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Cosh(r)),
-		decimal d => T.CreateTruncating(MathM.Cosh(d)),
+		double r => T.CreateTruncating(System.Math.Cosh(r)),
+		decimal d => T.CreateTruncating(Math.Cosh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cosh(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Cosh(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -179,8 +145,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Exp(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Exp(r)),
-		decimal d => T.CreateTruncating(MathM.Exp(d)),
+		double r => T.CreateTruncating(System.Math.Exp(r)),
+		decimal d => T.CreateTruncating(Math.Exp(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Exp(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Exp(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -207,45 +173,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		return final_hashcode;
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static decimal Log(decimal value) => (decimal)((LongDecimal)value).Log();
-	//{
-	//	if (value == 1m)
-	//		return 0m;
-	//	else if (value == 0m)
-	//		throw new OverflowException("Логарифм нуля - минус бесконечность, а decimal ее не поддерживает.");
-	//	else if (value < 0m)
-	//		throw new ArgumentOutOfRangeException(nameof(value), "Логарифм отрицательного числа не определен.");
-	//	var m = 48;
-	//	var pow = Pow(2, m);
-	//	var exponent = 0;
-	//	while (value >= 1m)
-	//	{
-	//		value /= 10;
-	//		exponent++;
-	//	}
-	//	while (value < 0.1m)
-	//	{
-	//		value *= 10;
-	//		exponent--;
-	//	}
-	//	var s = value * pow * pow;
-	//	var agm = AGM(4 * pow / s, pow) / pow;
-	//	return MathM.PI / (2 * agm) - m * 2 * 0.6931471805599453094172321215m
-	//		+ 2.302585092994045684017991455m * exponent;
-	//	static decimal AGM(decimal x, decimal y)
-	//	{
-	//		decimal a = x, b = y;
-	//		for (var i = 0; i < 60; i++) // фиксированное число итераций: достаточно для decimal
-	//			(a, b) = ((a + b) / 2, Sqrt(a * b));
-	//		return a;
-	//	}
-	//}
-
 	private static T Log(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Log(r)),
-		decimal d => T.CreateTruncating(Log(d)),
+		double r => T.CreateTruncating(System.Math.Log(r)),
+		decimal d => T.CreateTruncating(Math.Log(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Ln(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Ln(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -256,17 +187,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		TSelf.Creator(Log(AbsInterface(value)), Atan2(value.Imaginary, value.Real));
 	public static TSelf LogInterface(TSelf value, T baseValue) => LogInterface(value) / Log(baseValue);
 
-	protected static decimal Pow(decimal value, int exponent) => exponent switch
+	private static T Power(T value, T power) => (value, power) switch
 	{
-		2 => value * value,
-		3 => value * value * value,
-		_ => PowInternal(value, exponent),
-	};
-
-	private static T Pow(T value, T power) => (value, power) switch
-	{
-		(double value2, double power2) => T.CreateTruncating(Math.Pow(value2, power2)),
-		(decimal value2, decimal power2) => T.CreateTruncating(MathM.Pow(value2, power2)),
+		(double value2, double power2) => T.CreateTruncating(Math.Power(value2, power2)),
+		(decimal value2, decimal power2) => T.CreateTruncating(Math.Power(value2, power2)),
 		(LongReal value2, LongReal power2) => T.CreateTruncating(LongReal.Power(value2, power2)),
 		(LongDecimal value2, LongDecimal power2) => T.CreateTruncating(LongDecimal.Power(value2, power2)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -284,7 +208,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		if (value == ZeroInterface)
 			return ZeroInterface;
 		if (value.Imaginary == T.Zero && power.Imaginary == T.Zero)
-			return TSelf.Creator(Pow(value.Real, power.Real), T.Zero);
+			return TSelf.Creator(Power(value.Real, power.Real), T.Zero);
 		var a = value.Real;
 		var b = value.Imaginary;
 		var c = power.Real;
@@ -292,50 +216,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		var rho = AbsInterface(value);
 		var theta = Atan2(b, a);
 		var newRho = c * theta + d * Log(rho);
-		var t = Pow(rho, c) * Pow(T.E, -d * theta);
+		var t = Power(rho, c) * Power(T.E, -d * theta);
 		return TSelf.Creator(t * Cos(newRho), t * Sin(newRho));
-	}
-
-	private static decimal PowInternal(decimal @base, int exponent)
-	{
-		switch (exponent)
-		{
-			case 0:
-			return 1m;
-			case 1:
-			return @base;
-			case 4:
-			@base *= @base;
-			return @base * @base;
-			case 5:
-			var square = @base * @base;
-			return square * square * @base;
-			default:
-			if (@base == 1m)
-				return @base;
-			var negative = false;
-			if (exponent < 0)
-			{
-				negative = true;
-				exponent = -exponent;
-			}
-			if (@base == 0m)
-				return negative ? throw new DivideByZeroException() : 0.0m;
-			if (@base == 1.0m)
-				return @base;
-			if (@base == -1.0m)
-				return (exponent & 1) == 0 ? 1.0m : -1.0m;
-			if (negative)
-				@base = 1.0m / @base;
-			var result = 1m;
-			for (var i = BitsPerInt - int.LeadingZeroCount(exponent); i >= 0; i--)
-			{
-				result *= result;
-				if ((exponent & 1u << i) != 0)
-					result *= @base;
-			}
-			return result;
-		}
 	}
 
 	public static TSelf ReciprocInterface(TSelf value) =>
@@ -343,8 +225,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Sin(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Sin(r)),
-		decimal d => T.CreateTruncating(MathM.Sin(d)),
+		double r => T.CreateTruncating(System.Math.Sin(r)),
+		decimal d => T.CreateTruncating(Math.Sin(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sin(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sin(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -360,8 +242,8 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Sinh(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Sinh(r)),
-		decimal d => T.CreateTruncating(MathM.Sinh(d)),
+		double r => T.CreateTruncating(System.Math.Sinh(r)),
+		decimal d => T.CreateTruncating(Math.Sinh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sinh(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sinh(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -375,24 +257,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		return TSelf.Creator(Sinh(a) * Cos(b), Cosh(a) * Sin(b));
 	}
 
-	private static decimal Sqrt(decimal value)
-	{
-		if (value < 0) throw new ArgumentOutOfRangeException(nameof(value),
-			"Квадратный корень из отрицательного числа не определен.");
-		var guess = MathM.Sqrt(value); // Начальное приближение
-		while (true)
-		{
-			var previous = guess;
-			guess = (previous + value / previous) / 2;
-			if (Math.Abs(previous - guess) < 1e-28m) // Условие сходимости
-				return guess;
-		}
-	}
-
 	private static T Sqrt(T value) => value switch
 	{
-		double r => T.CreateTruncating(Math.Sqrt(r)),
-		decimal d => T.CreateTruncating(Sqrt(d)),
+		double r => T.CreateTruncating(System.Math.Sqrt(r)),
+		decimal d => T.CreateTruncating(Math.Sqrt(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sqrt(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sqrt(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "

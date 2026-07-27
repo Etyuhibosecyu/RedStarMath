@@ -3,8 +3,8 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
-
 	<ItemGroup>
+	  <PackageReference Include="McNeight.MathM" Version="1.0.0" />
 		<ProjectReference Include="..\..\.NStar\Sources\NStar.Mpir\NStar.Mpir.csproj" />
 	</ItemGroup>
 </Project>
