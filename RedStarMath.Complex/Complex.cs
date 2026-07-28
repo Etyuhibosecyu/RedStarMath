@@ -786,19 +786,26 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 
 	public static Complex operator +(Complex value) => value;
 	public static Complex operator -(Complex value) => -(IComplexNumber<double, Complex>)value;
+	/// <inheritdoc cref="operator +(Complex, Complex)"/>
 	public static Complex operator +(double left, Complex right) => right + left;
+	/// <inheritdoc cref="operator +(Complex, Complex)"/>
 	public static Complex operator +(Complex left, double right) =>
 		new(left.Real + right, left.Imaginary);
 	public static Complex operator +(Complex left, Complex right) => (IComplexNumber<double, Complex>)left + right;
+	/// <inheritdoc cref="operator -(Complex, Complex)"/>
 	public static Complex operator -(double left, Complex right) => -(right - left);
+	/// <inheritdoc cref="operator -(Complex, Complex)"/>
 	public static Complex operator -(Complex left, double right) =>
 		new(left.Real - right, left.Imaginary);
 	public static Complex operator -(Complex left, Complex right) => (IComplexNumber<double, Complex>)left - right;
+	/// <inheritdoc cref="operator *(Complex, Complex)"/>
 	public static Complex operator *(double left, Complex right) => right * left;
+	/// <inheritdoc cref="operator *(Complex, Complex)"/>
 	public static Complex operator *(Complex left, double right) =>
 		new(double.IsNaN(left.Imaginary) ? double.NaN : left.Real * right,
 		double.IsNaN(left.Real) ? double.NaN : left.Imaginary * right);
 	public static Complex operator *(Complex left, Complex right) => (IComplexNumber<double, Complex>)left * right;
+	/// <inheritdoc cref="operator /(Complex, Complex)"/>
 	public static Complex operator /(Complex left, double right) =>
 		new(double.IsNaN(left.Imaginary) ? double.NaN : left.Real / right,
 		double.IsNaN(left.Real) ? double.NaN : left.Imaginary / right);

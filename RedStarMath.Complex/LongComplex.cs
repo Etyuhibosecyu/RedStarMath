@@ -5,6 +5,15 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 {
 	private const string NoComparisons = "Ошибка, операции \"больше\" и \"меньше\" не определены для комплексных чисел.";
 
+	public LongComplex(ReadOnlySpan<byte> bytes, int order) : this(bytes.Length < sizeof(int)
+#pragma warning disable IDE0079 // Удалить ненужное подавление
+#pragma warning disable S1121
+		|| BitConverter.ToInt32(bytes) is var realLength && (bytes = bytes[sizeof(int)..]).Length < realLength
+#pragma warning restore S1121
+#pragma warning restore IDE0079 // Удалить ненужное подавление
+		? throw new ArgumentException("Ошибка, слишком короткая последовательность байт для преобразования в этот тип.")
+		: new LongReal(bytes[..realLength], order), new LongReal(bytes[realLength..], order)) { }
+
 	public static LongComplex AdditiveIdentity => Zero;
 	static Func<LongReal, LongReal, LongComplex> IComplexNumber<LongReal, LongComplex>.Creator =>
 		(real, imaginary) => new(real, imaginary);
@@ -668,6 +677,26 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 	/// </returns>
 	public static LongComplex Tanh(LongComplex value) => IComplexNumber<LongReal, LongComplex>.TanhInterface(value);
 
+	/// <summary>
+	/// Преобразует данное число в массив байт.
+	/// </summary>
+	/// <param name="order">Порядок записи: &lt; 0 - Little Endian, &gt; 0 - Big Endian.</param>
+	/// <returns>Массив байт, из которого можно восстановить данное число,
+	/// с явным указанием длины мантиссы или без такового.</returns>
+	/// <remarks>
+	/// В данном типе порядок записи ни на что не влияет, оставлен только для унификации.
+	/// </remarks>
+	public byte[] ToByteArray(int order)
+	{
+		var bytes = GC.AllocateUninitializedArray<byte>(sizeof(int) + Real.GetByteCount() + Imaginary.GetByteCount());
+		if (order < 0 && TryWriteLittleEndian(bytes, out var bytesWritten) && bytesWritten == bytes.Length)
+			return bytes;
+		else if (order > 0 && TryWriteBigEndian(bytes, out bytesWritten) && bytesWritten == bytes.Length)
+			return bytes;
+		else
+			throw new InvalidOperationException("Ошибка, не удалось преобразовать в массив байт.");
+	}
+
 	public override string ToString() => ((IComplexNumber<LongReal, LongComplex>)this).ToStringInterface();
 	public string ToString(IFormatProvider? formatProvider) =>
 		((IComplexNumber<LongReal, LongComplex>)this).ToStringInterface(formatProvider);
@@ -711,29 +740,71 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongComplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
 
+	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
+	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
+	{
+		if (destination.Length >= sizeof(int)
+			&& BitConverter.TryWriteBytes(destination, CreateVar(Real.GetByteCount(), out var realLength))
+			&& destination.Length >= sizeof(int) + realLength
+			&& Real.TryWriteBigEndian(destination.Slice(sizeof(int), realLength), out var realBytesWritten)
+			&& Imaginary.TryWriteBigEndian(destination[(sizeof(int) + realBytesWritten)..], out var imaginaryBytesWritten)
+			&& sizeof(int) + realBytesWritten + imaginaryBytesWritten == destination.Length)
+		{
+			bytesWritten = sizeof(int) + realBytesWritten + imaginaryBytesWritten;
+			return true;
+		}
+		bytesWritten = 0;
+		return false;
+	}
+
+	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteLittleEndian"/>
+	public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
+	{
+		if (destination.Length >= sizeof(int)
+			&& BitConverter.TryWriteBytes(destination, CreateVar(Real.GetByteCount(), out var realLength))
+			&& destination.Length >= sizeof(int) + realLength
+			&& Real.TryWriteLittleEndian(destination.Slice(sizeof(int), realLength), out var realBytesWritten)
+			&& Imaginary.TryWriteLittleEndian(destination[(sizeof(int) + realBytesWritten)..], out var imaginaryBytesWritten)
+			&& sizeof(int) + realBytesWritten + imaginaryBytesWritten == destination.Length)
+		{
+			bytesWritten = sizeof(int) + realBytesWritten + imaginaryBytesWritten;
+			return true;
+		}
+		bytesWritten = 0;
+		return false;
+	}
+
 	public static implicit operator LongComplex(LongReal value) => new(value, LongReal.Zero);
 	public static implicit operator LongComplex(Complex value) => new(value.Real, value.Imaginary);
 	public static implicit operator LongComplex(System.Numerics.Complex value) => new(value.Real, value.Imaginary);
+	public static explicit operator Complex(LongComplex value) => new((double)value.Real, (double)value.Imaginary);
 	public static explicit operator System.Numerics.Complex(LongComplex value) =>
 		new((double)value.Real, (double)value.Imaginary);
 
 	public static LongComplex operator +(LongComplex value) => value;
 	public static LongComplex operator -(LongComplex value) => -(IComplexNumber<LongReal, LongComplex>)value;
+	/// <inheritdoc cref="operator +(LongComplex, LongComplex)"/>
 	public static LongComplex operator +(LongReal left, LongComplex right) => right + left;
+	/// <inheritdoc cref="operator +(LongComplex, LongComplex)"/>
 	public static LongComplex operator +(LongComplex left, LongReal right) =>
 		new(left.Real + right, left.Imaginary);
 	public static LongComplex operator +(LongComplex left, LongComplex right) =>
 		(IComplexNumber<LongReal, LongComplex>)left + right;
+	/// <inheritdoc cref="operator -(LongComplex, LongComplex)"/>
 	public static LongComplex operator -(LongReal left, LongComplex right) => -(right - left);
+	/// <inheritdoc cref="operator -(LongComplex, LongComplex)"/>
 	public static LongComplex operator -(LongComplex left, LongReal right) =>
 		new(left.Real - right, left.Imaginary);
 	public static LongComplex operator -(LongComplex left, LongComplex right) =>
 		(IComplexNumber<LongReal, LongComplex>)left - right;
+	/// <inheritdoc cref="operator *(LongComplex, LongComplex)"/>
 	public static LongComplex operator *(LongReal left, LongComplex right) => right * left;
+	/// <inheritdoc cref="operator *(LongComplex, LongComplex)"/>
 	public static LongComplex operator *(LongComplex left, LongReal right) =>
 		new(left.Real * right, left.Imaginary * right);
 	public static LongComplex operator *(LongComplex left, LongComplex right) =>
 		(IComplexNumber<LongReal, LongComplex>)left * right;
+	/// <inheritdoc cref="operator /(LongComplex, LongComplex)"/>
 	public static LongComplex operator /(LongComplex left, LongReal right) =>
 		new(left.Real / right, left.Imaginary / right);
 	public static LongComplex operator /(LongComplex left, LongComplex right) =>

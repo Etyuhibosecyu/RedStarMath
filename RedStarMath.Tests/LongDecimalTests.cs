@@ -650,7 +650,7 @@ public class LongDecimalTests
 			else if (LongDecimal.IsPositiveInfinity(log))
 				Assert.IsTrue(double.IsPositiveInfinity(dLog));
 			else
-				Assert.IsLessThanOrEqualTo(Max(Abs(dLog), 1) / Math.Shift(1d, 51), Abs(dLog - (double)(decimal)log));
+				Assert.IsLessThanOrEqualTo(Max(Abs(dLog), 1).Shift(-51), Abs(dLog - (double)(decimal)log));
 		}
 		for (var i = 0; i < 5000; i++)
 		{
@@ -804,13 +804,13 @@ public class LongDecimalTests
 			else
 			{
 				Assert.AreEqual(r * Pow(10, shiftAmount), (double)(ld << shiftAmount),
-					Max(Abs(r) * Pow(10, shiftAmount) / Math.Shift(1d, 52), double.Epsilon));
+					Max(Abs(r) * Pow(10, shiftAmount).Shift(-52), double.Epsilon));
 				Assert.AreEqual(r * Pow(10, shiftAmount), (double)(ld << (UnsignedLongDecimal)shiftAmount),
-					Max(Abs(r) * Pow(10, shiftAmount) / Math.Shift(1d, 52), double.Epsilon));
+					Max(Abs(r) * Pow(10, shiftAmount).Shift(-52), double.Epsilon));
 				Assert.AreEqual(r / Pow(10, shiftAmount), (double)(ld >> shiftAmount),
-					Max(Abs(r) * Pow(10, shiftAmount) / Math.Shift(1d, 52), double.Epsilon));
+					Max(Abs(r) * Pow(10, shiftAmount).Shift(-52), double.Epsilon));
 				Assert.AreEqual(r / Pow(10, shiftAmount), (double)(ld >> (UnsignedLongDecimal)shiftAmount),
-					Max(Abs(r) * Pow(10, shiftAmount) / Math.Shift(1d, 52), double.Epsilon));
+					Max(Abs(r) * Pow(10, shiftAmount).Shift(-52), double.Epsilon));
 			}
 		}
 		for (var i = 0; i < 500000; i++)
@@ -898,7 +898,9 @@ public class LongDecimalTests
 				_ => new(bytes.AsSpan(), order, mantissaLength),
 			};
 			LongDecimal ld2 = new(ld.ToByteArray(order, false), order, mantissaLength);
-			Assert.IsTrue(LongDecimal.IsNaN(ld) && LongDecimal.IsNaN(ld2) || ld.Equals(ld2));
+			LongDecimal ld3 = new(ld.ToByteArray(order), order);
+			Assert.IsTrue(LongDecimal.IsNaN(ld) && LongDecimal.IsNaN(ld2) && LongDecimal.IsNaN(ld3)
+				|| ld.Equals(ld2) && ld.Equals(ld3));
 		}
 		int RandomOrder() => random.Next(2) * 2 - 1;
 	}
@@ -1056,7 +1058,7 @@ public class LongDecimalTests
 			{
 				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Sin(r) - (double)ld.Sin()));
 				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Cos(r) - (double)ld.Cos()));
-				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1) / Math.Shift(1d, 52), Abs(Tan(r) - (double)ld.Tan()));
+				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1).Shift(-52), Abs(Tan(r) - (double)ld.Tan()));
 			}
 		}
 		for (var i = 0; i < 10000; i++)

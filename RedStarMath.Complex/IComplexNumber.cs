@@ -4,11 +4,11 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 	where T : struct, IFloatingPoint<T> where TSelf : struct, IComplexNumber<T, TSelf>
 {
 	protected static abstract Func<T, T, TSelf> Creator { get; }
-	public T Imaginary { get; }
-	public static TSelf ImaginaryOne { get; } = TSelf.Creator(T.Zero, T.One);
-	public T Magnitude => AbsInterface((TSelf)this);
-	public static TSelf OneInterface { get; } = TSelf.Creator(T.One, T.Zero);
-	public T Phase => Atan2(Imaginary, Real);
+	internal T Imaginary { get; }
+	internal static TSelf ImaginaryOne { get; } = TSelf.Creator(T.Zero, T.One);
+	internal T Magnitude => AbsInterface((TSelf)this);
+	internal static TSelf OneInterface { get; } = TSelf.Creator(T.One, T.Zero);
+	internal T Phase => Atan2(Imaginary, Real);
 
 	private static T PositiveInfinity => T.Zero switch
 	{
@@ -20,20 +20,20 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public T Real { get; }
-	public static TSelf ZeroInterface { get; } = TSelf.Creator(T.Zero, T.Zero);
+	internal T Real { get; }
+	internal static TSelf ZeroInterface { get; } = TSelf.Creator(T.Zero, T.Zero);
 
 	private static T Abs(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Abs(r)),
-		decimal d => T.CreateTruncating(System.Math.Abs(d)),
+		double r => T.CreateTruncating(Math.Abs(r)),
+		decimal d => T.CreateTruncating(Math.Abs(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Abs(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Abs(ld)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static T AbsInterface(TSelf value)
+	internal static T AbsInterface(TSelf value)
 	{
 		if (T.IsInfinity(value.Real) || T.IsInfinity(value.Imaginary))
 			return PositiveInfinity;
@@ -56,16 +56,16 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		}
 	}
 
-	public static TSelf AcosInterface(TSelf value) =>
+	internal static TSelf AcosInterface(TSelf value) =>
 		-ImaginaryOne * LogInterface(value + ImaginaryOne * SqrtInterface(OneInterface - value * value));
-	public static TSelf AcoshInterface(TSelf value) =>
+	internal static TSelf AcoshInterface(TSelf value) =>
 		LogInterface(value + SqrtInterface(SquareInterface(value) - TSelf.One));
 
-	public static TSelf AsinInterface(TSelf value) =>
+	internal static TSelf AsinInterface(TSelf value) =>
 		-ImaginaryOne * LogInterface(ImaginaryOne * value + SqrtInterface(OneInterface - value * value));
-	public static TSelf AsinhInterface(TSelf value) => LogInterface(value + SqrtInterface(SquareInterface(value) + TSelf.One));
+	internal static TSelf AsinhInterface(TSelf value) => LogInterface(value + SqrtInterface(SquareInterface(value) + TSelf.One));
 
-	public static TSelf AtanInterface(TSelf value)
+	internal static TSelf AtanInterface(TSelf value)
 	{
 		var Two = TSelf.Creator(T.One + T.One, T.Zero);
 		return ImaginaryOne / Two * (LogInterface(OneInterface - ImaginaryOne * value)
@@ -74,7 +74,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Atan2(T yValue, T xValue) => (yValue, xValue) switch
 	{
-		(double yValue2, double xValue2) => T.CreateTruncating(System.Math.Atan2(yValue2, xValue2)),
+		(double yValue2, double xValue2) => T.CreateTruncating(Math.Atan2(yValue2, xValue2)),
 		(decimal yValue2, decimal xValue2) => T.CreateTruncating(Math.Atan2(yValue2, xValue2)),
 		(LongReal yValue2, LongReal xValue2) => T.CreateTruncating(LongReal.Atan2(yValue2, xValue2)),
 		(LongDecimal yValue2, LongDecimal xValue2) => T.CreateTruncating(LongDecimal.Atan2(yValue2, xValue2)),
@@ -82,14 +82,14 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf AtanhInterface(TSelf value) =>
+	internal static TSelf AtanhInterface(TSelf value) =>
 		LogInterface((TSelf.One + value) / (TSelf.One - value)) / (TSelf.One + TSelf.One);
 
-	public static TSelf ConjugateInterface(TSelf value) => TSelf.Creator(value.Real, -value.Imaginary);
+	internal static TSelf ConjugateInterface(TSelf value) => TSelf.Creator(value.Real, -value.Imaginary);
 
 	private static T Cos(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Cos(r)),
+		double r => T.CreateTruncating(Math.Cos(r)),
 		decimal d => T.CreateTruncating(Math.Cos(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cos(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Cos(ld)),
@@ -97,7 +97,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf CosInterface(TSelf value)
+	internal static TSelf CosInterface(TSelf value)
 	{
 		var a = value.Real;
 		var b = value.Imaginary;
@@ -106,7 +106,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Cosh(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Cosh(r)),
+		double r => T.CreateTruncating(Math.Cosh(r)),
 		decimal d => T.CreateTruncating(Math.Cosh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cosh(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Cosh(ld)),
@@ -114,14 +114,14 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf CoshInterface(TSelf value)
+	internal static TSelf CoshInterface(TSelf value)
 	{
 		var a = value.Real;
 		var b = value.Imaginary;
 		return TSelf.Creator(Cosh(a) * Cos(b), Sinh(a) * Sin(b));
 	}
 
-	public bool EqualsInterface(object? obj) => obj switch
+	internal bool EqualsInterface(object? obj) => obj switch
 	{
 		null => false,
 		TSelf ts => Real.Equals(ts.Real) && Imaginary.Equals(ts.Imaginary),
@@ -141,11 +141,11 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		_ => false
 	};
 
-	public bool EqualsInterface(TSelf value) => Real.Equals(value.Real) && Imaginary.Equals(value.Imaginary);
+	internal bool EqualsInterface(TSelf value) => Real.Equals(value.Real) && Imaginary.Equals(value.Imaginary);
 
 	private static T Exp(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Exp(r)),
+		double r => T.CreateTruncating(Math.Exp(r)),
 		decimal d => T.CreateTruncating(Math.Exp(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Exp(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Exp(ld)),
@@ -153,7 +153,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf ExpInterface(TSelf value)
+	internal static TSelf ExpInterface(TSelf value)
 	{
 		var temp_factor = Exp(value.Real);
 		var result_re = temp_factor * Cos(value.Imaginary);
@@ -161,10 +161,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		return TSelf.Creator(result_re, result_im);
 	}
 
-	public static TSelf FromPolarCoordinatesInterface(T magnitude, T phase) =>
+	internal static TSelf FromPolarCoordinatesInterface(T magnitude, T phase) =>
 		TSelf.Creator(magnitude * Cos(phase), magnitude * Sin(phase));
 
-	public int GetHashCodeInterface()
+	internal int GetHashCodeInterface()
 	{
 		var n1 = 99999997;
 		var hash_real = Real.GetHashCode() % n1;
@@ -175,7 +175,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Log(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Log(r)),
+		double r => T.CreateTruncating(Math.Log(r)),
 		decimal d => T.CreateTruncating(Math.Log(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Ln(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Ln(ld)),
@@ -183,9 +183,9 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf LogInterface(TSelf value) =>
+	internal static TSelf LogInterface(TSelf value) =>
 		TSelf.Creator(Log(AbsInterface(value)), Atan2(value.Imaginary, value.Real));
-	public static TSelf LogInterface(TSelf value, T baseValue) => LogInterface(value) / Log(baseValue);
+	internal static TSelf LogInterface(TSelf value, T baseValue) => LogInterface(value) / Log(baseValue);
 
 	private static T Power(T value, T power) => (value, power) switch
 	{
@@ -197,11 +197,11 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf PowInterface(TSelf value, int power) =>
+	internal static TSelf PowInterface(TSelf value, int power) =>
 		PowInterface(value, TSelf.Creator(T.CreateTruncating(power), T.Zero));
-	public static TSelf PowInterface(TSelf value, T power) => PowInterface(value, TSelf.Creator(power, T.Zero));
+	internal static TSelf PowInterface(TSelf value, T power) => PowInterface(value, TSelf.Creator(power, T.Zero));
 
-	public static TSelf PowInterface(TSelf value, TSelf power)
+	internal static TSelf PowInterface(TSelf value, TSelf power)
 	{
 		if (power == ZeroInterface)
 			return OneInterface;
@@ -220,12 +220,12 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		return TSelf.Creator(t * Cos(newRho), t * Sin(newRho));
 	}
 
-	public static TSelf ReciprocInterface(TSelf value) =>
+	internal static TSelf ReciprocInterface(TSelf value) =>
 		value.Imaginary == T.Zero ? TSelf.Creator(T.One / value.Real, T.Zero) : OneInterface / value;
 
 	private static T Sin(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Sin(r)),
+		double r => T.CreateTruncating(Math.Sin(r)),
 		decimal d => T.CreateTruncating(Math.Sin(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sin(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sin(ld)),
@@ -233,7 +233,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf SinInterface(TSelf value)
+	internal static TSelf SinInterface(TSelf value)
 	{
 		var a = value.Real;
 		var b = value.Imaginary;
@@ -242,7 +242,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Sinh(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Sinh(r)),
+		double r => T.CreateTruncating(Math.Sinh(r)),
 		decimal d => T.CreateTruncating(Math.Sinh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sinh(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sinh(ld)),
@@ -250,7 +250,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf SinhInterface(TSelf value)
+	internal static TSelf SinhInterface(TSelf value)
 	{
 		var a = value.Real;
 		var b = value.Imaginary;
@@ -259,7 +259,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	private static T Sqrt(T value) => value switch
 	{
-		double r => T.CreateTruncating(System.Math.Sqrt(r)),
+		double r => T.CreateTruncating(Math.Sqrt(r)),
 		decimal d => T.CreateTruncating(Math.Sqrt(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sqrt(lr)),
 		LongDecimal ld => T.CreateTruncating(LongDecimal.Sqrt(ld)),
@@ -267,19 +267,19 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	public static TSelf SqrtInterface(TSelf value) =>
+	internal static TSelf SqrtInterface(TSelf value) =>
 		FromPolarCoordinatesInterface(Sqrt(value.Magnitude), value.Phase / (T.One + T.One));
-	public static TSelf SquareInterface(TSelf value) =>
+	internal static TSelf SquareInterface(TSelf value) =>
 		FromPolarCoordinatesInterface(value.Magnitude * value.Magnitude, value.Phase * (T.One + T.One));
-	public static TSelf TanInterface(TSelf value) => SinInterface(value) / CosInterface(value);
-	public static TSelf TanhInterface(TSelf value) => SinhInterface(value) / CoshInterface(value);
-	public string ToStringInterface(string? format) =>
+	internal static TSelf TanInterface(TSelf value) => SinInterface(value) / CosInterface(value);
+	internal static TSelf TanhInterface(TSelf value) => SinhInterface(value) / CoshInterface(value);
+	internal string ToStringInterface(string? format) =>
 		'(' + Real.ToString(format, CultureInfo.CurrentCulture) + ", "
 		+ Imaginary.ToString(format, CultureInfo.CurrentCulture) + ')';
-	public string ToStringInterface(IFormatProvider? provider) =>
+	internal string ToStringInterface(IFormatProvider? provider) =>
 		'(' + Real.ToString(null, provider) + ", " + Imaginary.ToString(null, provider) + ')';
-	public string ToStringInterface() => string.Format(CultureInfo.CurrentCulture, "({0}, {1})", Real, Imaginary);
-	public string ToStringInterface(string? format, IFormatProvider? provider) =>
+	internal string ToStringInterface() => string.Format(CultureInfo.CurrentCulture, "({0}, {1})", Real, Imaginary);
+	internal string ToStringInterface(string? format, IFormatProvider? provider) =>
 		'(' + Real.ToString(format, provider) + ", " + Imaginary.ToString(format, provider) + ')';
 
 	public static TSelf operator -(IComplexNumber<T, TSelf> value) => TSelf.Creator(-value.Real, -value.Imaginary);
@@ -290,10 +290,10 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 
 	public static TSelf operator *(IComplexNumber<T, TSelf> left, IComplexNumber<T, TSelf> right)
 	{
-		// Multiplication:  (a + bi)(c + di) = (ac -bd) + (bc + ad)i
-		var result_Realpart = left.Real * right.Real - left.Imaginary * right.Imaginary;
-		var result_Imaginarypart = left.Imaginary * right.Real + left.Real * right.Imaginary;
-		return TSelf.Creator(result_Realpart, result_Imaginarypart);
+		// Multiplication:  (a + bi)(c + di) = (ac - bd) + (bc + ad)i
+		var resultReal = left.Real * right.Real - left.Imaginary * right.Imaginary;
+		var resultImaginary = left.Imaginary * right.Real + left.Real * right.Imaginary;
+		return TSelf.Creator(resultReal, resultImaginary);
 	}
 
 	public static TSelf operator /(IComplexNumber<T, TSelf> left, T right) =>

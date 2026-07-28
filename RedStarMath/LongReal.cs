@@ -2538,7 +2538,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		bytesWritten = 0;
 		if (saveMantissaLength)
 		{
-			BitConverter.TryWriteBytes(destination, MantissaByteLength);
+			BitConverter.TryWriteBytes(destination, MantissaLength);
 			destination = destination[sizeof(int)..];
 			bytesWritten += sizeof(int);
 		}
@@ -2576,7 +2576,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		bytesWritten = 0;
 		if (saveMantissaLength)
 		{
-			BitConverter.TryWriteBytes(destination, MantissaByteLength);
+			BitConverter.TryWriteBytes(destination, MantissaLength);
 			destination = destination[sizeof(int)..];
 			bytesWritten += sizeof(int);
 		}

@@ -210,7 +210,7 @@ public class DeccomplexTests
 		if (counter++ < 10000)
 			goto l1;
 		void Validate(double op) => Assert.IsTrue(System.Numerics.Complex.Abs(nc - (System.Numerics.Complex)dc)
-			<= Max(Max(Pow(10, -28), op / Math.Shift(1d, 50)), System.Numerics.Complex.Abs(nc) / Math.Shift(1d, 50))
+			<= Max(Max(Pow(10, -28), op.Shift(-50)), System.Numerics.Complex.Abs(nc).Shift(-50))
 			|| nc.Real is double.NaN && (double)dc.Real is double.NaN
 			|| nc.Imaginary is double.NaN && (double)dc.Imaginary is double.NaN);
 	}
@@ -358,11 +358,11 @@ public class DeccomplexTests
 			var dc3 = dc.Acos();
 			var nc4 = System.Numerics.Complex.Atan(nc);
 			var dc4 = dc.Atan();
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d).Shift(-50),
 				System.Numerics.Complex.Abs(nc2 - (System.Numerics.Complex)dc2));
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d).Shift(-50),
 				System.Numerics.Complex.Abs(nc3 - (System.Numerics.Complex)dc3));
-			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d) / Math.Shift(1d, 50),
+			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d).Shift(-50),
 				System.Numerics.Complex.Abs(nc4 - (System.Numerics.Complex)dc4));
 		}
 	}
@@ -388,7 +388,7 @@ public class DeccomplexTests
 				var log = System.Numerics.Complex.Log(nc);
 				if (i == 29)
 					;
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)dc.Log()));
 			}
 		}
@@ -413,7 +413,7 @@ public class DeccomplexTests
 			else
 			{
 				var log = System.Numerics.Complex.Pow(new(3, 0), nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)complexThree.Power(dc)));
 			}
 		}
@@ -436,7 +436,7 @@ public class DeccomplexTests
 			else
 			{
 				var reciproc = System.Numerics.Complex.Reciprocal(nc);
-				Assert.IsLessThanOrEqualTo(System.Numerics.Complex.Abs(reciproc) / Math.Shift(1d, 52),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(reciproc), 1).Shift(-52),
 					System.Numerics.Complex.Abs(reciproc - (System.Numerics.Complex)dc.Reciproc()));
 			}
 		}
@@ -481,7 +481,7 @@ public class DeccomplexTests
 			else
 			{
 				var sqrt = System.Numerics.Complex.Sqrt(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sqrt), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sqrt), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(sqrt - (System.Numerics.Complex)dc.Sqrt()));
 			}
 		}
@@ -615,12 +615,12 @@ public class DeccomplexTests
 			else
 			{
 				var sin = System.Numerics.Complex.Sin(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(sin - (System.Numerics.Complex)dc.Sin()));
 				var cos = System.Numerics.Complex.Cos(nc);
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(cos), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(cos), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(cos - (System.Numerics.Complex)dc.Cos()));
-				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin / cos), 1d) / Math.Shift(1d, 50),
+				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin / cos), 1d).Shift(-50),
 					System.Numerics.Complex.Abs(sin / cos - (System.Numerics.Complex)dc.Tan()));
 			}
 		}

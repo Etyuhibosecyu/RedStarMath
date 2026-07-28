@@ -3116,7 +3116,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		bytesWritten = 0;
 		if (saveMantissaLength)
 		{
-			BitConverter.TryWriteBytes(destination, MantissaByteLength);
+			BitConverter.TryWriteBytes(destination, MantissaLength);
 			destination = destination[sizeof(int)..];
 			bytesWritten += sizeof(int);
 		}
@@ -3154,7 +3154,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		bytesWritten = 0;
 		if (saveMantissaLength)
 		{
-			BitConverter.TryWriteBytes(destination, MantissaByteLength);
+			BitConverter.TryWriteBytes(destination, MantissaLength);
 			destination = destination[sizeof(int)..];
 			bytesWritten += sizeof(int);
 		}

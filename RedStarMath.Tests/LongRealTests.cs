@@ -663,8 +663,8 @@ public class LongRealTests
 			var shiftAmount = random.Next(257);
 			Assert.AreEqual(r * Math.Shift(1d, shiftAmount), (double)(lr << shiftAmount));
 			Assert.AreEqual(r * Math.Shift(1d, shiftAmount), (double)(lr << (UnsignedLongReal)shiftAmount));
-			Assert.AreEqual(r / Math.Shift(1d, shiftAmount), (double)(lr >> shiftAmount));
-			Assert.AreEqual(r / Math.Shift(1d, shiftAmount), (double)(lr >> (UnsignedLongReal)shiftAmount));
+			Assert.AreEqual(r.Shift(-shiftAmount), (double)(lr >> shiftAmount));
+			Assert.AreEqual(r.Shift(-shiftAmount), (double)(lr >> (UnsignedLongReal)shiftAmount));
 		}
 		for (var i = 0; i < 1000000; i++)
 		{
@@ -749,7 +749,8 @@ public class LongRealTests
 				_ => new(bytes.AsSpan(), order, mantissaLength),
 			};
 			LongReal lr2 = new(lr.ToByteArray(order, false), order, mantissaLength);
-			Assert.IsTrue(LongReal.IsNaN(lr) && LongReal.IsNaN(lr2) || lr.Equals(lr2));
+			LongReal lr3 = new(lr.ToByteArray(order), order);
+			Assert.IsTrue(LongReal.IsNaN(lr) && LongReal.IsNaN(lr2) && LongReal.IsNaN(lr3) || lr.Equals(lr2) && lr.Equals(lr3));
 		}
 		int RandomOrder() => random.Next(2) * 2 - 1;
 	}
@@ -879,7 +880,7 @@ public class LongRealTests
 			{
 				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Sin(r) - (double)lr.Sin()));
 				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Cos(r) - (double)lr.Cos()));
-				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1) / Math.Shift(1d, 52), Abs(Tan(r) - (double)lr.Tan()));
+				Assert.IsLessThanOrEqualTo(Max(Abs(Tan(r)), 1).Shift(-52), Abs(Tan(r) - (double)lr.Tan()));
 			}
 		}
 		for (var i = 0; i < 10000; i++)
