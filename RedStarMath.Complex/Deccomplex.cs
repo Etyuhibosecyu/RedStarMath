@@ -24,10 +24,12 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 	/// <inheritdoc cref="IFloatingPointConstants{double}.E"/>
 	public static Deccomplex E => new(2.7182818284590452353602874714m, 0m);
 	public decimal Imaginary { get; } = imaginary;
+	public decimal Magnitude => ((IComplexNumber<decimal, Deccomplex>)this).MagnitudeInterface;
 	public static Deccomplex MultiplicativeIdentity => One;
 	/// <inheritdoc cref="ISignedNumber{double}.NegativeOne"/>
 	public static Deccomplex NegativeOne => new(-1m, 0m);
 	public static Deccomplex One => new(1m, 0m);
+	public decimal Phase => ((IComplexNumber<decimal, Deccomplex>)this).PhaseInterface;
 	/// <inheritdoc cref="IFloatingPointConstants{double}.Pi"/>
 	public static Deccomplex Pi => new(3.1415926535897932384626433833m, 0m);
 	public static int Radix => 10;
@@ -707,6 +709,10 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
 		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
+	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out Deccomplex result) =>
+		TryParse(s, NumberStyles.None, provider, out result);
+
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Deccomplex result)
 	{
@@ -726,13 +732,17 @@ public readonly struct Deccomplex(decimal real, decimal imaginary) : IComplexNum
 			return false;
 		}
 	}
-	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out Deccomplex result) => TryParse(s.AsSpan(), style, provider, out result);
-	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out Deccomplex result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out Deccomplex)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out Deccomplex result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Deccomplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
+	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out Deccomplex result) => TryParse(s.AsSpan(), style, provider, out result);
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out Deccomplex)"/>
+	public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Deccomplex result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	/// <remarks>

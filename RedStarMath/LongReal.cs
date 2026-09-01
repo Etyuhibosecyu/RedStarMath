@@ -4,7 +4,7 @@
 /// Представляет действительное число с плавающей точкой,
 /// с положительной или отрицательной мантиссой настраиваемой длины и с потенциально бесконечной экспонентой в плюс и в минус.
 /// Доступны операторы преобразования и конструкторы из знаковых и беззнаковых целых чисел,
-/// <see cref="UnsignedLongReal"/> и строки, преобразование в массив байт и из него,
+/// double, <see cref="UnsignedLongReal"/> и строки, преобразование в массив байт и из него,
 /// основные математические константы, арифметические, тригонометрические и другие основные операции.
 /// В этом типе мантисса является двоичной, поэтому возможны ошибки при работе с десятичными числами.
 /// Если для вас это критично, используйте LongDecimal.
@@ -126,7 +126,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		else
 		{
 			m = Unsafe.As<MpzT>(op.m) << 1;
-			e = op.e + (MantissaLength - 1);
+			e = op.e + (uint)(MantissaLength - 1);
 		}
 	}
 
@@ -231,7 +231,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	public static LongReal NegativeOne { get; } = new(-2, 0, MinMantissaLength);
 	public static LongReal One { get; } = new(MpzT.Zero, UnsignedLongReal.Zero, MinMantissaLength);
 	/// <summary>Получает (двоичный) порядок числа: количество бит в целой части для чисел &gt;= 1 и 0 для &lt; 1.</summary>
-	public UnsignedLongReal Order => (m & 1) != 0 ? new(MpuT.Zero, null, MantissaLength) : e + 1;
+	public UnsignedLongReal Order => (m & 1u) != 0 ? new(MpuT.Zero, null, MantissaLength) : e + 1u;
 	public static LongReal Pi { get; } = new(new MpzT("36892856717025391680"
 			+ "740891802812412405176592852830664590007670367492169080340481831853321118904436015143933"
 			+ "552972672082765245263376508596357945745324793896227010542086020897025607990336625291706026"
@@ -386,7 +386,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				if (eDiff == 0)
 				{
 					var switchE = x.e == 0;
-					newE = (switchE ? 0 : x.e - 1).GetWithOtherML(mantissaLength, false);
+					newE = (switchE ? 0u : x.e - 1u).GetWithOtherML(mantissaLength, false);
 					return new((xm + ym).ShiftRightRound(1) << 1 | (switchE ? 0 : 1), newE, mantissaLength);
 				}
 				if (eDiff > mantissaLength)
@@ -395,7 +395,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				if (Mpir.MpzCmp(mSum, mantissaOverflow) >= 0)
 				{
 					var switchE = x.e == 0;
-					newE = (switchE ? 0 : x.e - 1).GetWithOtherML(mantissaLength, false);
+					newE = (switchE ? 0u : x.e - 1u).GetWithOtherML(mantissaLength, false);
 					return new((mSum & mantissaMask).ShiftRightRound(1) << 1 | (switchE ? 0 : 1), newE, mantissaLength);
 				}
 				newE = x.e.GetWithOtherML(mantissaLength, true);
@@ -410,7 +410,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				var mDiff = mantissaOverflow + xm - (mantissaOverflow + ym).ShiftRightRound((int)eDiff);
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new((mDiff & mantissaMask) << 1 | 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
-				newE = (x.e + 1).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + 1u).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << 1 & mantissaMask) << 1 | 1, newE, mantissaLength);
 			}
 			else if (x.e == y.e)
@@ -419,7 +419,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				if (mDiff == 0)
 					return new((MpzT.One << mantissaLength + 1) + 1, UnsignedLongReal.Zero, mantissaLength);
 				var shiftAmount = mantissaLength - mDiff.BitLength + 1;
-				newE = (x.e + shiftAmount).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + new UnsignedLongReal(shiftAmount)).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << shiftAmount & mantissaMask) << 1 | 1, newE, mantissaLength);
 			}
 			else
@@ -431,7 +431,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 					newE = x.e.GetWithOtherML(mantissaLength, true);
 					return new((mDiff.ShiftRightRound(1) & mantissaMask) << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e + (shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + (new UnsignedLongReal(shiftAmount) + 1u)).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << shiftAmount & mantissaMask) << 1 | 1, newE, mantissaLength);
 			}
 		}
@@ -445,7 +445,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				var mSum = xm + (mantissaOverflow + ym).ShiftRightRound((int)eDiff);
 				if (Mpir.MpzCmp(mSum, mantissaOverflow) >= 0)
 				{
-					newE = (x.e + 1).GetWithOtherML(mantissaLength, false);
+					newE = (x.e + 1u).GetWithOtherML(mantissaLength, false);
 					return new((mSum & mantissaMask).ShiftRightRound(1) << 1, newE, mantissaLength);
 				}
 				newE = x.e.GetWithOtherML(mantissaLength, true);
@@ -461,7 +461,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new((mDiff & mantissaMask) << 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
 				var switchE = x.e == 0;
-				newE = (switchE ? 0 : x.e - 1).GetWithOtherML(mantissaLength, false);
+				newE = (switchE ? 0u : x.e - 1u).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << 1 & mantissaMask) << 1 | (switchE ? 1 : 0), newE, mantissaLength);
 			}
 			else
@@ -484,7 +484,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				var eDiff = x.e - y.e;
 				if (eDiff == 0)
 				{
-					newE = (x.e + 1).GetWithOtherML(mantissaLength, false);
+					newE = (x.e + 1u).GetWithOtherML(mantissaLength, false);
 					return new((xm + ym).ShiftRightRound(1) << 1, newE, mantissaLength);
 				}
 				if (eDiff > mantissaLength)
@@ -492,7 +492,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				var mSum = xm + (mantissaOverflow + ym).ShiftRightRound((int)eDiff);
 				if (Mpir.MpzCmp(mSum, mantissaOverflow) >= 0)
 				{
-					newE = (x.e + 1).GetWithOtherML(mantissaLength, false);
+					newE = (x.e + 1u).GetWithOtherML(mantissaLength, false);
 					return new((mSum & mantissaMask).ShiftRightRound(1) << 1, newE, mantissaLength);
 				}
 				newE = x.e.GetWithOtherML(mantissaLength, true);
@@ -507,7 +507,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				var mDiff = mantissaOverflow + xm - (mantissaOverflow + ym).ShiftRightRound((int)eDiff);
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new((mDiff & mantissaMask) << 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
-				newE = (x.e - 1).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - 1u).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << 1 & mantissaMask) << 1, newE, mantissaLength);
 			}
 			else if (x.e == y.e)
@@ -521,7 +521,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 					newE = new(shiftAmount - (int)x.e - 1, mantissaLength);
 					return new((mDiff << shiftAmount & mantissaMask) << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e - shiftAmount).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - new UnsignedLongReal(shiftAmount)).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << shiftAmount & mantissaMask) << 1, newE, mantissaLength);
 			}
 			else
@@ -538,7 +538,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 					newE = new(shiftAmount - (int)x.e, mantissaLength);
 					return new((mDiff << shiftAmount & mantissaMask) << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e - (shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - (new UnsignedLongReal(shiftAmount) + 1u)).GetWithOtherML(mantissaLength, false);
 				return new((mDiff << shiftAmount & mantissaMask) << 1, newE, mantissaLength);
 			}
 		}
@@ -600,9 +600,9 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			(x, y) = (y, x);
 		UnsignedLongReal shiftAmount = new(MpuT.Zero, null, maxMantissaLength);
 		if ((x.m & 1) != 0)
-			shiftAmount = x.e + 1;
+			shiftAmount = x.e + 1u;
 		if ((y.m & 1) != 0 && y.e >= shiftAmount)
-			shiftAmount = y.e + 1;
+			shiftAmount = y.e + 1u;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0)
 			return -AGMInternal(-y << shiftAmount, -x << shiftAmount, maxMantissaLength) >> shiftAmount;
 		else
@@ -978,9 +978,9 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	public int CompareTo(object? obj) => obj switch
 	{
 		null => 1,
-		byte y => CompareTo(y),
+		byte y => CompareTo((int)y),
 		short si => CompareTo(si),
-		ushort usi => CompareTo(usi),
+		ushort usi => CompareTo((int)usi),
 		int i => CompareTo(i),
 		uint ui => CompareTo(ui),
 		long li => CompareTo(li),
@@ -1115,10 +1115,10 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var quotient = (MantissaOverflow + (x.m >> 1) << maxMantissaLength + 1) / (MantissaOverflow + (y.m >> 1));
 		var shiftAmount = quotient.BitLength - maxMantissaLength - 1;
 		quotient = quotient.ShiftRightRound(shiftAmount) & MantissaMask;
-		if (x.e + shiftAmount >= y.e + 1)
-			return new(quotient << 1, x.e - y.e + shiftAmount - 1, maxMantissaLength);
+		if (x.e + new UnsignedLongReal(shiftAmount) >= y.e + 1u)
+			return new(quotient << 1, x.e - y.e + new UnsignedLongReal(shiftAmount) - 1u, maxMantissaLength);
 		else
-			return new(quotient << 1 | 1, y.e - x.e - shiftAmount, maxMantissaLength);
+			return new(quotient << 1 | 1, y.e - x.e - new UnsignedLongReal(shiftAmount), maxMantissaLength);
 	}
 
 	private static LongReal DivideUiInternal(LongReal x, uint y, int MantissaLength)
@@ -1129,11 +1129,11 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var shiftAmount = MantissaLength * 2 + 2 - quotient.BitLength;
 		var mantissa = (quotient.ShiftRightRound(MantissaLength - shiftAmount + 1) & MantissaMask) << 1 | x.m & 1;
 		if ((x.m & 1) != 0)
-			return new(mantissa, x.e + shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(mantissa, x.e - shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e - new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else
-			return new(mantissa | 1, shiftAmount - x.e - 1, x.MantissaLength);
+			return new(mantissa | 1, new UnsignedLongReal(shiftAmount) - x.e - 1u, x.MantissaLength);
 	}
 
 	/// <summary>
@@ -1183,9 +1183,9 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	public override bool Equals(object? obj) => obj switch
 	{
 		null => false,
-		byte y => CompareTo(y) == 0,
+		byte y => CompareTo((int)y) == 0,
 		short si => CompareTo(si) == 0,
-		ushort usi => CompareTo(usi) == 0,
+		ushort usi => CompareTo((int)usi) == 0,
 		int i => CompareTo(i) == 0,
 		uint ui => CompareTo(ui) == 0,
 		long li => CompareTo(li) == 0,
@@ -1337,8 +1337,8 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		y = y.GetWithOtherML(maxMantissaLength);
 		if (Mpir.MpzCmp(x.m, y.m) == 0 && x.e == y.e)
 			return new(x.m, x.e, maxMantissaLength);
-		var xShiftAmount = (x.m & 1) != 0 ? x.e + 1 : 0;
-		var yShiftAmount = (y.m & 1) != 0 ? y.e + 1 : 0;
+		var xShiftAmount = (x.m & 1u) != 0u ? x.e + 1u : 0u;
+		var yShiftAmount = (y.m & 1u) != 0u ? y.e + 1u : 0u;
 		if ((xShiftAmount & 1) != (yShiftAmount & 1))
 			xShiftAmount++;
 		var resultShiftAmount = xShiftAmount + yShiftAmount >> 1;
@@ -1655,7 +1655,8 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var shifted = product.ShiftRightRound(shiftAmount);
 		if (Mpir.MpzCmp(shifted, MantissaOverflow << 1) == 0)
 			shiftAmount++;
-		return new((shifted & MantissaMask) << 1, x.e + y.e + (shiftAmount - maxMantissaLength), maxMantissaLength);
+		return new((shifted & MantissaMask) << 1, x.e + y.e + (new UnsignedLongReal(shiftAmount) - (uint)maxMantissaLength),
+			maxMantissaLength);
 	}
 
 	private static LongReal MultiplyUiInternal(LongReal x, uint y, int mantissaLength)
@@ -1666,16 +1667,24 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var shiftAmount = product.BitLength - mantissaLength - 1;
 		var mantissa = (product.ShiftRightRound(shiftAmount) & MantissaMask) << 1 | x.m & 1;
 		if ((x.m & 1) == 0)
-			return new(mantissa, x.e + shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(mantissa, x.e - shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e - new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else
-			return new(mantissa & new MpzT(-2), shiftAmount - x.e - 1, x.MantissaLength);
+			return new(mantissa & new MpzT(-2), new UnsignedLongReal(shiftAmount) - x.e - 1u, x.MantissaLength);
 	}
 
 	public static LongReal Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => double.Parse(s, provider);
 	public static LongReal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider) =>
 		double.Parse(s, style, provider);
+
+	/// <summary>
+	/// Читает число из указанной строки, выбрасывая <see cref="FormatException"/> в случае неудачи.
+	/// </summary>
+	/// <param name="s">Строка для чтения из нее числа.</param>
+	/// <returns>Прочитанное число.</returns>
+	public static LongReal Parse(string s) => double.Parse(s, null);
+
 	public static LongReal Parse(string s, IFormatProvider? provider) => double.Parse(s, provider);
 	public static LongReal Parse(string s, NumberStyles style, IFormatProvider? provider) => double.Parse(s, style, provider);
 
@@ -1866,7 +1875,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var quotient = (mantissaOverflow << MantissaLength + 1) / (mantissaOverflow + (m >> 1));
 		var shiftAmount = quotient.BitLength - MantissaLength - 1;
 		quotient = quotient.ShiftRightRound(shiftAmount) & mantissaMask;
-		return new(quotient << 1 | (m & 1) ^ 1, Mpir.MpzCmpSi(m, 1) <= 0 ? e - (1 - (m & 1) * 2) : e, MantissaLength);
+		return new(quotient << 1 | (m & 1) ^ 1, Mpir.MpzCmpSi(m, 1) <= 0 ? e - (1u - (m & 1u) * 2u) : e, MantissaLength);
 	}
 
 	/// <summary>
@@ -2145,7 +2154,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 
 	private LongReal SqrtInternal()
 	{
-		LongReal current = new(MpzT.Zero, e + 1 >> 1, MantissaLength), prev;
+		LongReal current = new(MpzT.Zero, e + 1u >> 1, MantissaLength), prev;
 		do
 		{
 			prev = current;
@@ -2180,7 +2189,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 				UnsignedLongReal.Zero, MantissaLength);
 		if (Mpir.MpzCmpSi(m, 0) == 0 && e == 0)
 			return this;
-		var shiftAmount = (m & 1) != 0 ? e + 1 : new(MpuT.Zero, null, MantissaLength);
+		var shiftAmount = (m & 1u) != 0u ? e + 1u : new(MpuT.Zero, null, MantissaLength);
 		var x = Abs() << shiftAmount;
 		return x.SquareInternal() >> (shiftAmount << 1);
 	}
@@ -2207,7 +2216,8 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		var shifted = product.ShiftRightRound(shiftAmount);
 		if (Mpir.MpzCmp(shifted, mantissaOverflow << 1) == 0)
 			shiftAmount++;
-		return new((shifted & mantissaMask) << 1, (e << 1) + (shiftAmount - MantissaLength), MantissaLength);
+		return new((shifted & mantissaMask) << 1, (e << 1) + (new UnsignedLongReal(shiftAmount) - (uint)MantissaLength),
+			MantissaLength);
 	}
 
 	/// <summary>
@@ -2478,11 +2488,37 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	public static LongReal Truncate(LongReal value) => value.Truncate();
 
 	public static bool TryConvertFromChecked<TOther>(TOther value, [MaybeNullWhen(false)] out LongReal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther> => TryConvertFromTruncating(value, out result);
 	public static bool TryConvertFromSaturating<TOther>(TOther value, [MaybeNullWhen(false)] out LongReal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther> => TryConvertFromTruncating(value, out result);
+
 	public static bool TryConvertFromTruncating<TOther>(TOther value, [MaybeNullWhen(false)] out LongReal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther>
+	{
+		result = value switch
+		{
+			byte n => new((int)n),
+			short n => new(n),
+			ushort n => new((int)n),
+			int n => new(n),
+			uint n => new(n),
+			long n => new(n),
+			ulong n => new(n),
+			MpzT n => new(n),
+			MpuT n => new(n),
+			float r => new(r),
+			double r => new(r),
+			decimal r => (LongReal)(LongDecimal)r,
+			UnsignedLongReal r => new(r),
+			UnsignedLongDecimal r => (LongReal)(LongDecimal)r,
+			LongReal r => r,
+			LongDecimal r => (LongReal)r,
+			string s => TryParse(s, out var c) ? c : default,
+			_ => default,
+		};
+		return result != default;
+	}
+
 	public static bool TryConvertToChecked<TOther>(LongReal value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToSaturating<TOther>(LongReal value, [MaybeNullWhen(false)] out TOther result)
@@ -2506,7 +2542,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 	}
 
 	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out LongReal result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
+		TryParse(s, NumberStyles.Float, provider, out result);
 
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongReal result)
@@ -2523,10 +2559,16 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		}
 	}
 
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out LongReal)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out LongReal result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongReal result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongReal result) => TryParse(s.AsSpan(), style, provider, out result);
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out LongReal)"/>
+	public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out LongReal result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
@@ -2606,7 +2648,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 
 	public static implicit operator LongReal(byte value) => new((uint)value);
 	public static implicit operator LongReal(short value) => new(value, MinMantissaLength);
-	public static implicit operator LongReal(ushort value) => new(value, MinMantissaLength);
+	public static implicit operator LongReal(ushort value) => new((uint)value, MinMantissaLength);
 	public static implicit operator LongReal(int value) => new(value, MinMantissaLength);
 	public static implicit operator LongReal(uint value) => new(value);
 	public static implicit operator LongReal(long value) => new(value);
@@ -2734,7 +2776,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			return new(Unsafe.As<MpuT>(value.MantissaOverflow + (value.m >> 1))
 				.ShiftRightRound(value.MantissaLength - (int)value.e), null, value.MantissaLength);
 		else
-			return new(Unsafe.As<MpuT>(value.m >> 1), value.e - (value.MantissaLength - 1), value.MantissaLength);
+			return new(Unsafe.As<MpuT>(value.m >> 1), value.e - ((uint)value.MantissaLength - 1u), value.MantissaLength);
 	}
 
 	public static LongReal operator +(LongReal value) => new(value);
@@ -2756,6 +2798,51 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 
 	/// <inheritdoc cref="IBitwiseOperators{LongReal, LongReal, LongReal}.operator ~(LongReal)"/>
 	public static LongReal operator ~(LongReal value) => -(value + One);
+
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(byte x, LongReal y) => (uint)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, byte y) => x + (uint)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(short x, LongReal y) => (int)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, short y) => x + (int)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(ushort x, LongReal y) => (uint)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, ushort y) => x + (uint)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(int x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, int y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(uint x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, uint y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(long x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, long y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(ulong x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, ulong y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(MpzT x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, MpzT y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(MpuT x, LongReal y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongReal operator +(LongReal x, MpuT y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongDecimal operator +(decimal x, LongReal y) => (LongDecimal)y + x;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongDecimal operator +(LongReal x, decimal y) => (LongDecimal)x + y;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongDecimal operator +(UnsignedLongDecimal x, LongReal y) => (LongDecimal)y + x;
+	/// <inheritdoc cref="operator +(LongReal, LongReal)"/>
+	public static LongDecimal operator +(LongReal x, UnsignedLongDecimal y) => (LongDecimal)x + y;
 
 	public static LongReal operator +(LongReal x, LongReal y)
 	{
@@ -2796,12 +2883,92 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		return AddInternal(x, y, mantissaLength, xmlDiff, ymlDiff);
 	}
 
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(byte x, LongReal y) => (uint)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, byte y) => x - (uint)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(short x, LongReal y) => (int)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, short y) => x - (int)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(ushort x, LongReal y) => (uint)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, ushort y) => x - (uint)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(int x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, int y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(uint x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, uint y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(long x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, long y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(ulong x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, ulong y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(MpzT x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, MpzT y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(MpuT x, LongReal y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongReal operator -(LongReal x, MpuT y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongDecimal operator -(decimal x, LongReal y) => x - (LongDecimal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongDecimal operator -(LongReal x, decimal y) => (LongDecimal)x - y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongDecimal operator -(UnsignedLongDecimal x, LongReal y) => x - (LongDecimal)y;
+	/// <inheritdoc cref="operator -(LongReal, LongReal)"/>
+	public static LongDecimal operator -(LongReal x, UnsignedLongDecimal y) => (LongDecimal)x - y;
 	public static LongReal operator -(LongReal x, LongReal y) => x + -y;
 
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(byte x, LongReal y) => (uint)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, byte y) => x * (uint)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(short x, LongReal y) => (int)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, short y) => x * (int)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(ushort x, LongReal y) => (uint)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, ushort y) => x * (uint)y;
 	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
 	public static LongReal operator *(int x, LongReal y) => y * x;
 	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
 	public static LongReal operator *(uint x, LongReal y) => y * x;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(long x, LongReal y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, long y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(ulong x, LongReal y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, ulong y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(MpzT x, LongReal y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, MpzT y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(MpuT x, LongReal y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongReal operator *(LongReal x, MpuT y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongDecimal operator *(decimal x, LongReal y) => (LongDecimal)y * x;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongDecimal operator *(LongReal x, decimal y) => (LongDecimal)x * y;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongDecimal operator *(UnsignedLongDecimal x, LongReal y) => (LongDecimal)y * x;
+	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
+	public static LongDecimal operator *(LongReal x, UnsignedLongDecimal y) => (LongDecimal)x * y;
 
 	/// <inheritdoc cref="operator *(LongReal, LongReal)"/>
 	public static LongReal operator *(LongReal x, int y)
@@ -2856,8 +3023,8 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			return y;
 		else if (Mpir.MpzCmpSi(y.m, 0) == 0 && y.e == 0)
 			return x;
-		var xShiftAmount = (x.m & 1) != 0 ? x.e + 1 : new(MpuT.Zero, null, maxMantissaLength);
-		var yShiftAmount = (y.m & 1) != 0 ? y.e + 1 : new(MpuT.Zero, null, maxMantissaLength);
+		var xShiftAmount = (x.m & 1u) != 0u ? x.e + 1u : new(MpuT.Zero, null, maxMantissaLength);
+		var yShiftAmount = (y.m & 1u) != 0u ? y.e + 1u : new(MpuT.Zero, null, maxMantissaLength);
 		x <<= xShiftAmount;
 		y <<= yShiftAmount;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0 && Mpir.MpzCmpSi(y.m, 0) < 0)
@@ -2869,6 +3036,23 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		else
 			return MultiplyInternal(x, y, maxMantissaLength) >> xShiftAmount + yShiftAmount;
 	}
+
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(byte x, LongReal y) => (uint)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, byte y) => x / (uint)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(short x, LongReal y) => (int)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, short y) => x / (int)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(ushort x, LongReal y) => (uint)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, ushort y) => x / (uint)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(int x, LongReal y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(uint x, LongReal y) => (LongReal)x / y;
 
 	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
 	public static LongReal operator /(LongReal x, int y)
@@ -2900,6 +3084,31 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			return DivideUiInternal(x, y, mantissaLength);
 	}
 
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(long x, LongReal y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, long y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(ulong x, LongReal y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, ulong y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(MpzT x, LongReal y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, MpzT y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(MpuT x, LongReal y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongReal operator /(LongReal x, MpuT y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongDecimal operator /(decimal x, LongReal y) => x / (LongDecimal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongDecimal operator /(LongReal x, decimal y) => (LongDecimal)x / y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongDecimal operator /(UnsignedLongDecimal x, LongReal y) => x / (LongDecimal)y;
+	/// <inheritdoc cref="operator /(LongReal, LongReal)"/>
+	public static LongDecimal operator /(LongReal x, UnsignedLongDecimal y) => (LongDecimal)x / y;
+
 	public static LongReal operator /(LongReal x, LongReal y)
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
@@ -2930,9 +3139,9 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		y = y.GetWithOtherML(maxMantissaLength);
 		UnsignedLongReal shiftAmount = new(MpuT.Zero, null, maxMantissaLength);
 		if ((x.m & 1) != 0)
-			shiftAmount = x.e + 1;
+			shiftAmount = x.e + 1u;
 		if ((y.m & 1) != 0 && y.e >= shiftAmount)
-			shiftAmount = y.e + 1;
+			shiftAmount = y.e + 1u;
 		x <<= shiftAmount;
 		y <<= shiftAmount;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0 && Mpir.MpzCmpSi(y.m, 0) < 0)
@@ -2945,6 +3154,51 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 			return DivideInternal(x, y, maxMantissaLength);
 	}
 
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(byte x, LongReal y) => (uint)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, byte y) => x % (uint)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(short x, LongReal y) => (int)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, short y) => x % (int)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(ushort x, LongReal y) => (uint)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, ushort y) => x % (uint)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(int x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, int y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(uint x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, uint y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(long x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, long y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(ulong x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, ulong y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(MpzT x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, MpzT y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(MpuT x, LongReal y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongReal operator %(LongReal x, MpuT y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongDecimal operator %(decimal x, LongReal y) => x % (LongDecimal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongDecimal operator %(LongReal x, decimal y) => (LongDecimal)x % y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongDecimal operator %(UnsignedLongDecimal x, LongReal y) => x % (LongDecimal)y;
+	/// <inheritdoc cref="operator %(LongReal, LongReal)"/>
+	public static LongDecimal operator %(LongReal x, UnsignedLongDecimal y) => (LongDecimal)x % y;
+
 	public static LongReal operator %(LongReal x, LongReal y) => x - Truncate(x / y) * y;
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator {{"/>
@@ -2954,11 +3208,11 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		if (Mpir.MpzCmp(x.m, x.ShiftedMantissaOverflow) > 0 || shiftAmount == 0)
 			return x;
 		else if ((x.m & 1) == 0)
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(x.m, x.e - shiftAmount, x.MantissaLength);
+			return new(x.m, x.e - new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else
-			return new(x.m & new MpzT(-2), shiftAmount - x.e - 1, x.MantissaLength);
+			return new(x.m & new MpzT(-2), new UnsignedLongReal(shiftAmount) - x.e - 1u, x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator {{"/>
@@ -2972,7 +3226,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		else if (x.e >= shiftAmount)
 			return new(x.m, x.e - shiftAmount, x.MantissaLength);
 		else
-			return new(x.m & new MpzT(-2), shiftAmount - x.e - 1, x.MantissaLength);
+			return new(x.m & new MpzT(-2), shiftAmount - x.e - 1u, x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
@@ -2982,11 +3236,11 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		if (Mpir.MpzCmp(x.m, x.ShiftedMantissaOverflow) > 0 || shiftAmount == 0)
 			return x;
 		else if ((x.m & 1) != 0)
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(x.m, x.e - shiftAmount, x.MantissaLength);
+			return new(x.m, x.e - new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else
-			return new(x.m | 1, shiftAmount - x.e - 1, x.MantissaLength);
+			return new(x.m | 1, new UnsignedLongReal(shiftAmount) - x.e - 1u, x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
@@ -3000,7 +3254,7 @@ public readonly struct LongReal : IFloatingPoint<LongReal>, ICloneable, IConvert
 		else if (x.e >= shiftAmount)
 			return new(x.m, x.e - shiftAmount, x.MantissaLength);
 		else
-			return new(x.m | 1, shiftAmount - x.e - 1, x.MantissaLength);
+			return new(x.m | 1, shiftAmount - x.e - 1u, x.MantissaLength);
 	}
 
 	public static LongReal operator ++(LongReal x) => x + One;

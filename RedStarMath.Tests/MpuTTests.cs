@@ -7,7 +7,7 @@ public class MpuTTests
 	public void Constructor_FromUInt32()
 	{
 		MpuT value = new(42U);
-		Assert.AreEqual(42, value);
+		Assert.AreEqual(42u, value);
 	}
 
 	[TestMethod]
@@ -145,7 +145,7 @@ public class MpuTTests
 		MpuT a = new(10U);
 		MpuT b = new(20U);
 		var result = a + b;
-		Assert.AreEqual(30, result);
+		Assert.AreEqual(30u, result);
 	}
 
 	[TestMethod]
@@ -154,7 +154,7 @@ public class MpuTTests
 		MpuT a = new(50U);
 		MpuT b = new(20U);
 		var result = a - b;
-		Assert.AreEqual(30, result);
+		Assert.AreEqual(30u, result);
 	}
 
 	[TestMethod]
@@ -188,8 +188,8 @@ public class MpuTTests
 	{
 		MpuT a = new(10U);
 		var b = -20;
-		MpuT result;
-		Assert.ThrowsExactly<OverflowException>(() => result = a + b);
+		MpzT result = a + b;
+		Assert.AreEqual(-10, result);
 	}
 
 	[TestMethod]
@@ -206,8 +206,8 @@ public class MpuTTests
 	{
 		MpuT a = new(0U);
 		var b = -1;
-		MpuT result;
-		Assert.ThrowsExactly<OverflowException>(() => result = a + b);
+		MpzT result = a + b;
+		Assert.AreEqual(-1, result);
 	}
 
 	[TestMethod]
@@ -216,7 +216,7 @@ public class MpuTTests
 		MpuT a = new(50U);
 		var b = 25U;
 		var result = a + b;
-		Assert.AreEqual(75, result);
+		Assert.AreEqual(75u, result);
 	}
 
 	[TestMethod]
@@ -225,7 +225,7 @@ public class MpuTTests
 		MpuT a = new(0U);
 		var b = 100U;
 		var result = a + b;
-		Assert.AreEqual(100, result);
+		Assert.AreEqual(100u, result);
 	}
 
 	[TestMethod]
@@ -260,7 +260,7 @@ public class MpuTTests
 	{
 		MpuT a = new(10U);
 		var b = 20;
-		MpuT result;
+		MpzT result;
 		Assert.ThrowsExactly<OverflowException>(() => result = a - b);
 	}
 
@@ -278,7 +278,7 @@ public class MpuTTests
 	{
 		MpuT a = new(0U);
 		var b = 1;
-		MpuT result;
+		MpzT result;
 		Assert.ThrowsExactly<OverflowException>(() => result = a - b);
 	}
 
@@ -297,7 +297,7 @@ public class MpuTTests
 		MpuT a = new(100U);
 		var b = 25U;
 		var result = a - b;
-		Assert.AreEqual(75, result);
+		Assert.AreEqual(75u, result);
 	}
 
 	[TestMethod]
@@ -306,7 +306,7 @@ public class MpuTTests
 		MpuT a = new(50U);
 		var b = 50U;
 		var result = a - b;
-		Assert.AreEqual(0, result);
+		Assert.AreEqual(0u, result);
 	}
 
 	[TestMethod]
@@ -342,7 +342,7 @@ public class MpuTTests
 		MpuT a = new(7U);
 		MpuT b = new(8U);
 		var result = a * b;
-		Assert.AreEqual(56, result);
+		Assert.AreEqual(56u, result);
 	}
 
 	[TestMethod]
@@ -351,7 +351,7 @@ public class MpuTTests
 		MpuT a = new(100U);
 		MpuT b = new(4U);
 		var result = a / b;
-		Assert.AreEqual(25, result);
+		Assert.AreEqual(25u, result);
 	}
 
 	[TestMethod]
@@ -360,7 +360,7 @@ public class MpuTTests
 		MpuT a = new(23U);
 		MpuT b = new(5U);
 		var result = a % b;
-		Assert.AreEqual(3, result);
+		Assert.AreEqual(3u, result);
 	}
 
 	[TestMethod]
@@ -369,7 +369,7 @@ public class MpuTTests
 		MpuT a = new(0b1101);
 		MpuT b = new(0b1011);
 		var result = a & b;
-		Assert.AreEqual(0b1001, result);
+		Assert.AreEqual(0b1001u, result);
 	}
 
 	[TestMethod]
@@ -378,7 +378,7 @@ public class MpuTTests
 		MpuT a = new(0b1101);
 		MpuT b = new(0b1011);
 		var result = a | b;
-		Assert.AreEqual(0b1111, result);
+		Assert.AreEqual(0b1111u, result);
 	}
 
 	[TestMethod]
@@ -387,7 +387,7 @@ public class MpuTTests
 		MpuT a = new(0b1101);
 		MpuT b = new(0b1011);
 		var result = a ^ b;
-		Assert.AreEqual(0b0110, result);
+		Assert.AreEqual(0b0110u, result);
 	}
 
 	[TestMethod]
@@ -395,7 +395,7 @@ public class MpuTTests
 	{
 		MpuT a = new(1U);
 		var result = a << 3;
-		Assert.AreEqual(8, result);
+		Assert.AreEqual(8u, result);
 	}
 
 	[TestMethod]
@@ -403,7 +403,7 @@ public class MpuTTests
 	{
 		MpuT a = new(16U);
 		var result = a >> 2;
-		Assert.AreEqual(4, result);
+		Assert.AreEqual(4u, result);
 	}
 
 	[TestMethod]
@@ -512,7 +512,7 @@ public class MpuTTests
 			var @long = random.NextInt64(1L << (random.Next(1, 16) << 2));
 			var shift = random.Next(1025);
 			var uz = (MpuT)@long << shift;
-			Assert.AreEqual(@long == 0 ? 0 : long.TrailingZeroCount(@long) + shift, MpuT.TrailingZeroCount(uz));
+			Assert.AreEqual(@long == 0 ? 0 : long.TrailingZeroCount(@long) + shift, (MpzT)MpuT.TrailingZeroCount(uz));
 			var z = (MpzT)@long << shift;
 			Assert.AreEqual(@long == 0 ? 0 : long.TrailingZeroCount(@long) + shift, MpzT.TrailingZeroCount(z));
 			var z2 = (MpzT)~@long << shift;

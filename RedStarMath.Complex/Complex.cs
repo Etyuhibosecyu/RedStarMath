@@ -1,4 +1,5 @@
 ﻿global using NStar.Core;
+global using NStar.Mpir;
 global using System;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
@@ -28,6 +29,7 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	/// <inheritdoc cref="IFloatingPointConstants{double}.E"/>
 	public static Complex E => new(double.E, 0d);
 	public double Imaginary { get; } = imaginary;
+	public double Magnitude => ((IComplexNumber<double, Complex>)this).MagnitudeInterface;
 	public static Complex MultiplicativeIdentity => One;
 	/// <inheritdoc cref="double.NaN"/>
 	public static Complex NaN { get; } = new(double.NaN, 0d);
@@ -36,6 +38,7 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	/// <inheritdoc cref="ISignedNumber{double}.NegativeOne"/>
 	public static Complex NegativeOne => new(-1d, 0d);
 	public static Complex One => new(1d, 0d);
+	public double Phase => ((IComplexNumber<double, Complex>)this).PhaseInterface;
 	/// <inheritdoc cref="IFloatingPointConstants{double}.Pi"/>
 	public static Complex Pi => new(double.Pi, 0d);
 	/// <inheritdoc cref="double.PositiveInfinity"/>
@@ -299,6 +302,12 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	/// </returns>
 	public static Complex Exp(Complex value) => IComplexNumber<double, Complex>.ExpInterface(value);
 
+	public static Complex FromPolarCoordinates(double magnitude, double phase)
+	{
+		var (sin, cos) = phase.SinCos();
+		return new Complex(magnitude * cos, magnitude * sin);
+	}
+
 	public override int GetHashCode() => ((IComplexNumber<double, Complex>)this).GetHashCodeInterface();
 	public static bool IsCanonical(Complex value) => true;
 	public static bool IsComplexNumber(Complex value) => true;
@@ -312,12 +321,12 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 	public static bool IsNaN(Complex value) => double.IsNaN(value.Real) || double.IsNaN(value.Imaginary);
 	public static bool IsNegative(Complex value) => value.Real < 0d && value.Imaginary == 0d;
 	public static bool IsNegativeInfinity(Complex value) =>
-		double.IsNegativeInfinity(value.Real) && double.IsNegativeInfinity(value.Imaginary);
+		double.IsNegativeInfinity(value.Real) && value.Imaginary == 0d;
 	public static bool IsNormal(Complex value) => double.IsNormal(value.Real) && double.IsNormal(value.Imaginary);
 	public static bool IsOddInteger(Complex value) => double.IsOddInteger(value.Real) && value.Imaginary == 0d;
 	public static bool IsPositive(Complex value) => value.Real > 0d && value.Imaginary == 0d;
 	public static bool IsPositiveInfinity(Complex value) =>
-		double.IsPositiveInfinity(value.Real) && double.IsPositiveInfinity(value.Imaginary);
+		double.IsPositiveInfinity(value.Real) && value.Imaginary == 0d;
 	public static bool IsRealNumber(Complex value) => value.Imaginary == 0d;
 	public static bool IsSubnormal(Complex value) => double.IsSubnormal(value.Real) || double.IsSubnormal(value.Imaginary);
 	public static bool IsZero(Complex value) => value.Real == 0d && value.Imaginary == 0d;
@@ -736,6 +745,9 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
 		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
+	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Complex result) =>
+		TryParse(s, NumberStyles.None, provider, out result);
+
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Complex result)
 	{
@@ -750,12 +762,17 @@ public readonly struct Complex(double real, double imaginary) : IComplexNumber<d
 			return false;
 		}
 	}
-	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out Complex result) => TryParse(s.AsSpan(), style, provider, out result);
-	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Complex result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out Complex)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out Complex result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out Complex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
+	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out Complex result) => TryParse(s.AsSpan(), style, provider, out result);
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out Complex)"/>
+	public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Complex result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	/// <remarks>

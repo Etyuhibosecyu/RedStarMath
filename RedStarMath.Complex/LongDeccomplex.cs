@@ -11,6 +11,7 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 	/// <inheritdoc cref="IFloatingPointConstants{double}.E"/>
 	public static LongDeccomplex E => new(LongDecimal.E, LongDecimal.Zero);
 	public LongDecimal Imaginary { get; } = imaginary;
+	public LongDecimal Magnitude => ((IComplexNumber<LongDecimal, LongDeccomplex>)this).MagnitudeInterface;
 	public static LongDeccomplex MultiplicativeIdentity => One;
 	/// <inheritdoc cref="LongDecimal.NaN"/>
 	public static LongDeccomplex NaN { get; } = new(LongDecimal.NaN, LongDecimal.Zero);
@@ -19,6 +20,7 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 	/// <inheritdoc cref="ISignedNumber{double}.NegativeOne"/>
 	public static LongDeccomplex NegativeOne => new(LongDecimal.NegativeOne, LongDecimal.Zero);
 	public static LongDeccomplex One => new(LongDecimal.One, LongDecimal.Zero);
+	public LongDecimal Phase => ((IComplexNumber<LongDecimal, LongDeccomplex>)this).PhaseInterface;
 	/// <inheritdoc cref="IFloatingPointConstants{double}.Pi"/>
 	public static LongDeccomplex Pi => new(LongDecimal.Pi, LongDecimal.Zero);
 	/// <inheritdoc cref="LongDecimal.PositiveInfinity"/>
@@ -702,6 +704,10 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
 		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
+	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out LongDeccomplex result) =>
+		TryParse(s, NumberStyles.None, provider, out result);
+
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDeccomplex result)
 	{
@@ -716,13 +722,17 @@ public readonly struct LongDeccomplex(LongDecimal real, LongDecimal imaginary) :
 			return false;
 		}
 	}
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out LongDeccomplex)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out LongDeccomplex result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDeccomplex result) => TryParse(s.AsSpan(), style, provider, out result);
-	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out LongDeccomplex result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDeccomplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out LongDeccomplex)"/>
+	public static bool TryParse(string s, [MaybeNullWhen(false)] out LongDeccomplex result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	public static implicit operator LongDeccomplex(LongDecimal value) => new(value, LongDecimal.Zero);
 	public static implicit operator LongDeccomplex(Complex value) => new(value.Real, value.Imaginary);

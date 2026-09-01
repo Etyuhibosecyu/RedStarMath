@@ -4,7 +4,8 @@
 /// Представляет действительное число с плавающей точкой,
 /// с положительной или отрицательной мантиссой настраиваемой длины и с потенциально бесконечной экспонентой в плюс и в минус.
 /// Доступны операторы преобразования и конструкторы из знаковых и беззнаковых целых чисел,
-/// <see cref="UnsignedLongDecimal"/> и строки, преобразование в массив байт и из него,
+/// double, decimal, <see cref="UnsignedLongReal"/>, <see cref="UnsignedLongDecimal"/>,
+/// <see cref="LongReal"/> и строки, преобразование в массив байт и из него,
 /// основные математические константы, арифметические, тригонометрические и другие основные операции.
 /// В этом типе мантисса является двоичной, поэтому возможны ошибки при работе с десятичными числами.
 /// Если для вас это критично, используйте LongDecimal.
@@ -194,7 +195,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		else
 		{
 			m = Unsafe.As<MpzT>(op.m) << 1;
-			e = op.e + (MantissaLength - 1);
+			e = op.e + new UnsignedLongDecimal(MantissaLength - 1);
 		}
 	}
 
@@ -223,13 +224,13 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			return;
 		}
 		var exponent = new LongReal(op.e, MantissaLength);
-		var ld = new LongDecimal(mantissa << 1, UnsignedLongDecimal.Zero, MantissaLength);
+		var lm = new LongDecimal(mantissa << 1, UnsignedLongDecimal.Zero, MantissaLength);
 		if (exponent.e < 31)
-			ld *= Two.GetWithOtherML(MantissaLength).Power((op.m & 1) != 0 ? ~(int)exponent : (int)exponent);
+			lm *= Two.GetWithOtherML(MantissaLength).Power((op.m & 1) != 0 ? ~(int)exponent : (int)exponent);
 		else
-			ld *= PowerOf2(new((op.m & 1) != 0 ? ~exponent : exponent));
-		m = ld.m;
-		e = ld.e;
+			lm *= PowerOf2(new((op.m & 1) != 0 ? ~exponent : exponent));
+		m = lm.m;
+		e = lm.e;
 	}
 
 	public LongDecimal(LongDecimal op) : this(op.m, op.e, op.MantissaLength) { }
@@ -440,7 +441,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public static LongDecimal NegativeOne { get; } = new(-2, UnsignedLongDecimal.Zero, MinMantissaLength);
 	public static LongDecimal One { get; } = new(MpzT.Zero, UnsignedLongDecimal.Zero, MinMantissaLength);
 	/// <summary>Получает (двоичный) порядок числа: количество бит в целой части для чисел &gt;= 1 и 0 для &lt; 1.</summary>
-	public UnsignedLongDecimal Order => (m & 1) != 0 ? new(MpuT.Zero, null, MantissaLength) : e + 1;
+	public UnsignedLongDecimal Order => (m & 1u) != 0u ? new(MpuT.Zero, null, MantissaLength) : e + UnsignedLongDecimal.One;
 	public static LongDecimal Pi { get; } = new(new MpzT("4283185307179586476925286766559005768394338798750211641949889"
 			+ "184615632812572417997256069650684234135964296173026564613294187689219101164463450718816256"
 			+ "962234900568205403877042211119289245897909860763928857621951331866892256951296467573566330"
@@ -652,7 +653,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				if (Mpir.MpzCmp(mSum, mantissaMask) > 0)
 				{
 					var switchE = x.e == 0;
-					newE = (switchE ? UnsignedLongDecimal.Zero : x.e - 1).GetWithOtherML(mantissaLength, false);
+					newE = (switchE ? UnsignedLongDecimal.Zero : x.e - 1u).GetWithOtherML(mantissaLength, false);
 					var newM = (mantissaOverflow + mSum).ShiftRightRoundDec(1) - mantissaOverflow;
 					return new(newM << 1 | (switchE ? 0 : 1), newE, mantissaLength);
 				}
@@ -668,7 +669,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				var mDiff = mantissaOverflow + xm - (mantissaOverflow + ym).ShiftRightRoundDec((int)eDiff);
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new(mDiff - mantissaOverflow << 1 | 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
-				newE = (x.e + 1).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + UnsignedLongDecimal.One).GetWithOtherML(mantissaLength, false);
 				return new(mDiff * 10 - mantissaOverflow << 1 | 1, newE, mantissaLength);
 			}
 			else if (x.e == y.e)
@@ -677,7 +678,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				if (mDiff == 0)
 					return new(MpuTPowerOf10(mantissaLength) * 18 + 1, UnsignedLongDecimal.Zero, mantissaLength);
 				var shiftAmount = mantissaLength - mDiff.DecLength + 1;
-				newE = (x.e + shiftAmount).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + new UnsignedLongDecimal(shiftAmount)).GetWithOtherML(mantissaLength, false);
 				return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1 | 1, newE, mantissaLength);
 			}
 			else
@@ -689,7 +690,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					newE = x.e.GetWithOtherML(mantissaLength, true);
 					return new(mDiff.ShiftRightRoundDec(1) - mantissaOverflow << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e + (shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
+				newE = (x.e + new UnsignedLongDecimal(shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
 				return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1 | 1, newE, mantissaLength);
 			}
 		}
@@ -706,7 +707,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					newE = x.e.GetWithOtherML(mantissaLength, false);
 					var changeE = Mpir.MpzCmp(mSum, mantissaMask) > 0;
 					var newM = changeE ? (mantissaOverflow + mSum).ShiftRightRoundDec(1) - mantissaOverflow : mSum;
-					return new(newM << 1, changeE ? newE + 1 : newE, mantissaLength);
+					return new(newM << 1, changeE ? newE + UnsignedLongDecimal.One : newE, mantissaLength);
 				}
 				newE = x.e.GetWithOtherML(mantissaLength, true);
 				return new(mSum << 1, newE, mantissaLength);
@@ -721,7 +722,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new(mDiff - mantissaOverflow << 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
 				var changeE = x.e == 0;
-				newE = (changeE ? UnsignedLongDecimal.Zero : x.e - 1).GetWithOtherML(mantissaLength, false);
+				newE = (changeE ? UnsignedLongDecimal.Zero : x.e - 1u).GetWithOtherML(mantissaLength, false);
 				return new(mDiff * 10 - mantissaOverflow << 1 | (changeE ? 1 : 0), newE, mantissaLength);
 			}
 			else
@@ -749,7 +750,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					mSum = xm + mantissaOverflow + ym;
 					var changeE = Mpir.MpzCmp(mSum, mantissaMask) > 0;
 					var newM = changeE ? (mantissaOverflow + mSum).ShiftRightRoundDec(1) - mantissaOverflow : mSum;
-					return new(newM << 1, changeE ? newE + 1 : newE, mantissaLength);
+					return new(newM << 1, changeE ? newE + UnsignedLongDecimal.One : newE, mantissaLength);
 				}
 				if (eDiff > mantissaLength)
 					return x.GetWithOtherML(mantissaLength);
@@ -760,7 +761,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					mSum = xm + (mantissaOverflow + ym).ShiftRightRoundDec((int)eDiff);
 					var changeE = Mpir.MpzCmp(mSum, mantissaMask) > 0;
 					var newM = changeE ? (mantissaOverflow + mSum).ShiftRightRoundDec(1) - mantissaOverflow : mSum;
-					return new(newM << 1, changeE ? newE + 1 : newE, mantissaLength);
+					return new(newM << 1, changeE ? newE + UnsignedLongDecimal.One : newE, mantissaLength);
 				}
 				newE = x.e.GetWithOtherML(mantissaLength, true);
 				return new(mSum << 1, newE, mantissaLength);
@@ -774,7 +775,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				var mDiff = mantissaOverflow + xm - (mantissaOverflow + ym).ShiftRightRoundDec((int)eDiff);
 				if (Mpir.MpzCmp(mDiff, mantissaOverflow) >= 0)
 					return new(mDiff - mantissaOverflow << 1, x.e.GetWithOtherML(mantissaLength, true), mantissaLength);
-				newE = (x.e - 1).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - UnsignedLongDecimal.One).GetWithOtherML(mantissaLength, false);
 				return new(mDiff * 10 - mantissaOverflow << 1, newE, mantissaLength);
 			}
 			else if (x.e == y.e)
@@ -788,7 +789,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					newE = new(shiftAmount - (int)x.e - 1, mantissaLength);
 					return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e - shiftAmount).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - new UnsignedLongDecimal(shiftAmount)).GetWithOtherML(mantissaLength, false);
 				return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1, newE, mantissaLength);
 			}
 			else
@@ -805,7 +806,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 					newE = new(shiftAmount - (int)x.e, mantissaLength);
 					return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1 | 1, newE, mantissaLength);
 				}
-				newE = (x.e - (shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
+				newE = (x.e - new UnsignedLongDecimal(shiftAmount + 1)).GetWithOtherML(mantissaLength, false);
 				return new(mDiff.ShiftLeftDec(shiftAmount) - mantissaOverflow << 1, newE, mantissaLength);
 			}
 		}
@@ -821,7 +822,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		if (switchE)
 			newE = ((UnsignedLongDecimal)0).GetWithOtherML(mantissaLength, false);
 		else
-			newE = (e - (changeE ? 1 : 0)).GetWithOtherML(mantissaLength, false);
+			newE = (e - (changeE ? UnsignedLongDecimal.One : UnsignedLongDecimal.Zero)).GetWithOtherML(mantissaLength, false);
 		var newM = changeE ? (mantissaOverflow + mSum).ShiftRightRoundDec(1) - mantissaOverflow : mSum;
 		return new(newM << 1 | (switchE ? 0 : 1), newE, mantissaLength);
 	}
@@ -883,9 +884,9 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			(x, y) = (y, x);
 		UnsignedLongDecimal shiftAmount = new(MpuT.Zero, null, maxMantissaLength);
 		if ((x.m & 1) != 0)
-			shiftAmount = x.e + 1;
+			shiftAmount = x.e + UnsignedLongDecimal.One;
 		if ((y.m & 1) != 0 && y.e >= shiftAmount)
-			shiftAmount = y.e + 1;
+			shiftAmount = y.e + UnsignedLongDecimal.One;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0)
 			return -AGMInternal(-y << shiftAmount, -x << shiftAmount, maxMantissaLength) >> shiftAmount;
 		else
@@ -1266,9 +1267,9 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public int CompareTo(object? obj) => obj switch
 	{
 		null => 1,
-		byte y => CompareTo(y),
+		byte y => CompareTo((int)y),
 		short si => CompareTo(si),
-		ushort usi => CompareTo(usi),
+		ushort usi => CompareTo((int)usi),
 		int i => CompareTo(i),
 		uint ui => CompareTo(ui),
 		long li => CompareTo(li),
@@ -1407,9 +1408,10 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var shiftAmount = quotient.DecLength - maxMantissaLength - 1;
 		quotient = quotient.ShiftRightRoundDec(shiftAmount) - MantissaOverflow;
 		if (x.e + shiftAmount >= y.e + 1)
-			return new(quotient << 1, x.e - y.e + shiftAmount - 1, maxMantissaLength);
+			return new(quotient << 1, x.e - y.e + new UnsignedLongDecimal(shiftAmount) - UnsignedLongDecimal.One,
+				maxMantissaLength);
 		else
-			return new(quotient << 1 | 1, y.e - x.e - shiftAmount, maxMantissaLength);
+			return new(quotient << 1 | 1, y.e - x.e - new UnsignedLongDecimal(shiftAmount), maxMantissaLength);
 	}
 
 	private static LongDecimal DivideUiInternal(LongDecimal x, uint y, int MantissaLength)
@@ -1419,11 +1421,11 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var shiftAmount = MantissaLength * 2 + 2 - quotient.DecLength;
 		var mantissa = (quotient.ShiftRightRoundDec(MantissaLength - shiftAmount + 1) - MantissaOverflow) << 1 | x.m & 1;
 		if ((x.m & 1) != 0)
-			return new(mantissa, x.e + shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e + new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(mantissa, x.e - shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e - new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else
-			return new(mantissa | 1, new UnsignedLongDecimal(shiftAmount) - x.e - 1, x.MantissaLength);
+			return new(mantissa | 1, new UnsignedLongDecimal(shiftAmount) - x.e - UnsignedLongDecimal.One, x.MantissaLength);
 	}
 
 	/// <summary>
@@ -1473,9 +1475,9 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public override bool Equals(object? obj) => obj switch
 	{
 		null => false,
-		byte y => CompareTo(y) == 0,
+		byte y => CompareTo((int)y) == 0,
 		short si => CompareTo(si) == 0,
-		ushort usi => CompareTo(usi) == 0,
+		ushort usi => CompareTo((int)usi) == 0,
 		int i => CompareTo(i) == 0,
 		uint ui => CompareTo(ui) == 0,
 		long li => CompareTo(li) == 0,
@@ -1839,11 +1841,11 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		y = y.GetWithOtherML(maxMantissaLength);
 		if (Mpir.MpzCmp(x.m, y.m) == 0 && x.e == y.e)
 			return new(x.m, x.e, maxMantissaLength);
-		var xShiftAmount = (x.m & 1) != 0 ? x.e + 1 : UnsignedLongDecimal.Zero;
-		var yShiftAmount = (y.m & 1) != 0 ? y.e + 1 : UnsignedLongDecimal.Zero;
+		var xShiftAmount = (x.m & 1) != 0 ? x.e + 1u : UnsignedLongDecimal.Zero;
+		var yShiftAmount = (y.m & 1) != 0 ? y.e + 1u : UnsignedLongDecimal.Zero;
 		if ((xShiftAmount & 1) != (yShiftAmount & 1))
 			xShiftAmount++;
-		var resultShiftAmount = (xShiftAmount + yShiftAmount) / 2;
+		var resultShiftAmount = (xShiftAmount + yShiftAmount) / 2u;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0)
 			return -GeometricMeanInternal(-x << xShiftAmount, -y << yShiftAmount, maxMantissaLength) >> resultShiftAmount;
 		else
@@ -2175,7 +2177,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var shifted = product.ShiftRightRoundDec(shiftAmount);
 		if (Mpir.MpzCmp(shifted, MantissaOverflow * 10) == 0)
 			shiftAmount++;
-		return new((shifted - MantissaOverflow) << 1, x.e + y.e + (shiftAmount - maxMantissaLength), maxMantissaLength);
+		return new((shifted - MantissaOverflow) << 1, x.e + y.e + new UnsignedLongDecimal(shiftAmount - maxMantissaLength),
+			maxMantissaLength);
 	}
 
 	private LongDecimal NewtonExponent(LongDecimal frac)
@@ -2197,16 +2200,25 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var shiftAmount = product.DecLength - mantissaLength - 1;
 		var mantissa = (product.ShiftRightRoundDec(shiftAmount) - MantissaOverflow) << 1 | x.m & 1;
 		if ((x.m & 1) == 0)
-			return new(mantissa, x.e + shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e + new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(mantissa, x.e - shiftAmount, x.MantissaLength);
+			return new(mantissa, x.e - new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else
-			return new(mantissa & new MpzT(-2), new UnsignedLongDecimal(shiftAmount) - x.e - 1, x.MantissaLength);
+			return new(mantissa & new MpzT(-2), new UnsignedLongDecimal(shiftAmount) - x.e - UnsignedLongDecimal.One,
+				x.MantissaLength);
 	}
 
 	public static LongDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => double.Parse(s, provider);
 	public static LongDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider) =>
 		double.Parse(s, style, provider);
+
+	/// <summary>
+	/// Читает число из указанной строки, выбрасывая <see cref="FormatException"/> в случае неудачи.
+	/// </summary>
+	/// <param name="s">Строка для чтения из нее числа.</param>
+	/// <returns>Прочитанное число.</returns>
+	public static LongDecimal Parse(string s) => double.Parse(s, null);
+
 	public static LongDecimal Parse(string s, IFormatProvider? provider) => double.Parse(s, provider);
 	public static LongDecimal Parse(string s, NumberStyles style, IFormatProvider? provider) => double.Parse(s, style, provider);
 
@@ -2393,7 +2405,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var quotient = mantissaOverflow.ShiftLeftDec(MantissaLength + 1) / (mantissaOverflow + (m >> 1));
 		var shiftAmount = quotient.DecLength - MantissaLength - 1;
 		quotient = quotient.ShiftRightRoundDec(shiftAmount) - mantissaOverflow;
-		return new(quotient << 1 | (m & 1) ^ 1, Mpir.MpzCmpSi(m, 1) <= 0 ? e - (1 - (m & 1) * 2) : e, MantissaLength);
+		return new(quotient << 1 | (m & 1) ^ 1, Mpir.MpzCmpSi(m, 1) <= 0 ? e - (1u - (m & 1u) * 2u) : e, MantissaLength);
 	}
 
 	/// <summary>
@@ -2675,7 +2687,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var newM = squareMantissa.Sqrt();
 		if (Mpir.MpzCmp(squareMantissa, (newM + 1) * newM) > 0)
 			newM++;
-		return new(newM - MantissaOverflow << 1, e / 2, MantissaLength);
+		return new(newM - MantissaOverflow << 1, e / 2u, MantissaLength);
 	}
 
 	/// <summary>
@@ -2704,9 +2716,9 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 				UnsignedLongDecimal.Zero, MantissaLength);
 		if (Mpir.MpzCmpSi(m, 0) == 0 && e == 0)
 			return this;
-		var shiftAmount = (m & 1) != 0 ? e + 1 : new(MpuT.Zero, null, MantissaLength);
+		var shiftAmount = (m & 1u) != 0u ? e + UnsignedLongDecimal.One : new(MpuT.Zero, null, MantissaLength);
 		var x = Abs() << shiftAmount;
-		return x.SquareInternal() >> shiftAmount * 2;
+		return x.SquareInternal() >> shiftAmount * 2u;
 	}
 
 	/// <summary>
@@ -2730,7 +2742,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		var shifted = product.ShiftRightRoundDec(shiftAmount);
 		if (Mpir.MpzCmp(shifted, mantissaOverflow << 1) == 0)
 			shiftAmount++;
-		return new(shifted - mantissaOverflow << 1, e * 2 + (shiftAmount - MantissaLength), MantissaLength);
+		return new(shifted - mantissaOverflow << 1, e * 2u + new UnsignedLongDecimal(shiftAmount - MantissaLength),
+			MantissaLength);
 	}
 
 	/// <summary>
@@ -3056,11 +3069,37 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	public static LongDecimal Truncate(LongDecimal value) => value.Truncate();
 
 	public static bool TryConvertFromChecked<TOther>(TOther value, [MaybeNullWhen(false)] out LongDecimal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther> => TryConvertFromTruncating(value, out result);
 	public static bool TryConvertFromSaturating<TOther>(TOther value, [MaybeNullWhen(false)] out LongDecimal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther> => TryConvertFromTruncating(value, out result);
+
 	public static bool TryConvertFromTruncating<TOther>(TOther value, [MaybeNullWhen(false)] out LongDecimal result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther>
+	{
+		result = value switch
+		{
+			byte n => new((int)n),
+			short n => new(n),
+			ushort n => new((int)n),
+			int n => new(n),
+			uint n => new(n),
+			long n => new(n),
+			ulong n => new(n),
+			MpzT n => new(n),
+			MpuT n => new(n),
+			float r => new(r),
+			double r => new(r),
+			decimal r => new(r),
+			UnsignedLongReal r => new(r),
+			UnsignedLongDecimal r => new(r),
+			LongReal r => new(r),
+			LongDecimal r => r,
+			string s => TryParse(s, out var c) ? c : default,
+			_ => default,
+		};
+		return result != default;
+	}
+
 	public static bool TryConvertToChecked<TOther>(LongDecimal value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToSaturating<TOther>(LongDecimal value, [MaybeNullWhen(false)] out TOther result)
@@ -3084,12 +3123,17 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 	}
 
 	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out LongDecimal result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
+		TryParse(s, NumberStyles.Float, provider, out result);
 
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDecimal result)
 	{
-		if (double.TryParse(s, style, provider, out var doubleResult))
+		if (decimal.TryParse(s, style, provider, out var decimalResult))
+		{
+			result = decimalResult;
+			return true;
+		}
+		else if (double.TryParse(s, style, provider, out var doubleResult))
 		{
 			result = doubleResult;
 			return true;
@@ -3101,10 +3145,16 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		}
 	}
 
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out LongDecimal)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out LongDecimal result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDecimal result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongDecimal result) => TryParse(s.AsSpan(), style, provider, out result);
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out LongDecimal)"/>
+	public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out LongDecimal result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
@@ -3184,7 +3234,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 
 	public static implicit operator LongDecimal(byte value) => new((uint)value);
 	public static implicit operator LongDecimal(short value) => new(value, MinMantissaLength);
-	public static implicit operator LongDecimal(ushort value) => new(value, MinMantissaLength);
+	public static implicit operator LongDecimal(ushort value) => new((uint)value, MinMantissaLength);
 	public static implicit operator LongDecimal(int value) => new(value, MinMantissaLength);
 	public static implicit operator LongDecimal(uint value) => new(value);
 	public static implicit operator LongDecimal(long value) => new(value);
@@ -3403,7 +3453,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			return new(Unsafe.As<MpuT>(value.MantissaOverflow + (value.m >> 1))
 				.ShiftRightRoundDec(value.MantissaLength - (int)value.e), null, value.MantissaLength);
 		else
-			return new(Unsafe.As<MpuT>(value.m >> 1), value.e - (value.MantissaLength - 1), value.MantissaLength);
+			return new(Unsafe.As<MpuT>(value.m >> 1), value.e - new UnsignedLongDecimal(value.MantissaLength - 1),
+				value.MantissaLength);
 	}
 
 	public static explicit operator LongReal(LongDecimal value)
@@ -3553,8 +3604,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 			return y;
 		else if (Mpir.MpzCmpSi(y.m, 0) == 0 && y.e == 0)
 			return x;
-		var xShiftAmount = (x.m & 1) != 0 ? x.e + 1 : new(MpuT.Zero, null, maxMantissaLength);
-		var yShiftAmount = (y.m & 1) != 0 ? y.e + 1 : new(MpuT.Zero, null, maxMantissaLength);
+		var xShiftAmount = (x.m & 1u) != 0u ? x.e + UnsignedLongDecimal.One : new(MpuT.Zero, null, maxMantissaLength);
+		var yShiftAmount = (y.m & 1u) != 0u ? y.e + UnsignedLongDecimal.One : new(MpuT.Zero, null, maxMantissaLength);
 		x <<= xShiftAmount;
 		y <<= yShiftAmount;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0 && Mpir.MpzCmpSi(y.m, 0) < 0)
@@ -3627,9 +3678,9 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		y = y.GetWithOtherML(maxMantissaLength);
 		UnsignedLongDecimal shiftAmount = new(MpuT.Zero, null, maxMantissaLength);
 		if ((x.m & 1) != 0)
-			shiftAmount = x.e + 1;
+			shiftAmount = x.e + UnsignedLongDecimal.One;
 		if ((y.m & 1) != 0 && y.e >= shiftAmount)
-			shiftAmount = y.e + 1;
+			shiftAmount = y.e + UnsignedLongDecimal.One;
 		x <<= shiftAmount;
 		y <<= shiftAmount;
 		if (Mpir.MpzCmpSi(x.m, 0) < 0 && Mpir.MpzCmpSi(y.m, 0) < 0)
@@ -3651,11 +3702,12 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		if (Mpir.MpzCmp(x.m, x.ShiftedMantissaOverflow) > 0 || shiftAmount == 0)
 			return x;
 		else if ((x.m & 1) == 0)
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(x.m, x.e - shiftAmount, x.MantissaLength);
+			return new(x.m, x.e - new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else
-			return new(x.m & new MpzT(-2), new UnsignedLongDecimal(shiftAmount) - x.e - 1, x.MantissaLength);
+			return new(x.m & new MpzT(-2), new UnsignedLongDecimal(shiftAmount) - x.e - UnsignedLongDecimal.One,
+				x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator {{"/>
@@ -3669,7 +3721,8 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		else if (x.e >= shiftAmount)
 			return new(x.m, x.e - shiftAmount, x.MantissaLength);
 		else
-			return new(x.m & new MpzT(-2), new UnsignedLongDecimal(shiftAmount) - x.e - 1, x.MantissaLength);
+			return new(x.m & new MpzT(-2), shiftAmount - x.e - UnsignedLongDecimal.One,
+				x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
@@ -3679,11 +3732,11 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		if (Mpir.MpzCmp(x.m, x.ShiftedMantissaOverflow) > 0 || shiftAmount == 0)
 			return x;
 		else if ((x.m & 1) != 0)
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else if (x.e >= shiftAmount)
-			return new(x.m, x.e - shiftAmount, x.MantissaLength);
+			return new(x.m, x.e - new UnsignedLongDecimal(shiftAmount), x.MantissaLength);
 		else
-			return new(x.m | 1, new UnsignedLongDecimal(shiftAmount) - x.e - 1, x.MantissaLength);
+			return new(x.m | 1, new UnsignedLongDecimal(shiftAmount) - x.e - UnsignedLongDecimal.One, x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="IShiftOperators{TSelf, int, TSelf}.operator }}"/>
@@ -3697,7 +3750,7 @@ public readonly struct LongDecimal : IFloatingPoint<LongDecimal>, ICloneable, IC
 		else if (x.e >= shiftAmount)
 			return new(x.m, x.e - shiftAmount, x.MantissaLength);
 		else
-			return new(x.m | 1, shiftAmount - x.e - 1, x.MantissaLength);
+			return new(x.m | 1, shiftAmount - x.e - UnsignedLongDecimal.One, x.MantissaLength);
 	}
 
 	public static LongDecimal operator ++(LongDecimal x) => x + One;

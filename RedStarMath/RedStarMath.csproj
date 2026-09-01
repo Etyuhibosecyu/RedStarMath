@@ -4,7 +4,7 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="McNeight.MathM" Version="1.0.0" />
-		<ProjectReference Include="..\..\.NStar\Sources\NStar.Mpir\NStar.Mpir.csproj" />
+		<PackageReference Include="McNeight.MathM" Version="1.0.0" />
+		<ProjectReference Include="..\NStar.Mpir\NStar.Mpir.csproj" />
 	</ItemGroup>
 </Project>

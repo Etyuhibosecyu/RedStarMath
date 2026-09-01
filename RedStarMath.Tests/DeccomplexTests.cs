@@ -12,207 +12,207 @@ public class DeccomplexTests
 		var counter = 0;
 		List<byte> bytes = new(1024);
 	l1:
-		var d = ConstructDecimal(bytes, random);
-		var d2 = ConstructDecimal(bytes, random);
-		System.Numerics.Complex nc = new((double)d, (double)d2);
-		Deccomplex dc = new(d, d2);
+		var m = ConstructDecimal(bytes, random);
+		var m2 = ConstructDecimal(bytes, random);
+		System.Numerics.Complex nc = new((double)m, (double)m2);
+		Deccomplex mc = new(m, m2);
 		Validate(0);
 		var actions = new[]
 		{
 			() =>
 			{
 				var op = (byte)random.Next(256);
-				if ((double)dc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc += op;
-				dc += op;
+				mc += op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (byte)random.Next(256);
-				if ((double)dc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc -= op;
-				dc -= op;
+				mc -= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (byte)random.Next(256);
-				if ((double)dc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc *= op;
-				dc *= op;
+				mc *= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (byte)random.Next(256);
 				if (op == 0)
 					return;
-				if ((double)dc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc /= op;
-				dc /= op;
+				mc /= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.Next();
-				if ((double)dc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc += op;
-				dc += op;
+				mc += op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.Next();
-				if ((double)dc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc -= op;
-				dc -= op;
+				mc -= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.Next();
-				if ((double)dc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc *= op;
-				dc *= op;
+				mc *= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.Next();
 				if (op == 0)
 					return;
-				if ((double)dc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc /= op;
-				dc /= op;
+				mc /= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (uint)random.Next() + (random.Next(2) == 0 ? 0 : 1u << 31);
-				if ((double)dc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc += op;
-				dc += op;
+				mc += op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (uint)random.Next() + (random.Next(2) == 0 ? 0 : 1u << 31);
-				if ((double)dc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc -= op;
-				dc -= op;
+				mc -= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (uint)random.Next() + (random.Next(2) == 0 ? 0 : 1u << 31);
-				if ((double)dc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc *= op;
-				dc *= op;
+				mc *= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (uint)random.Next() + (random.Next(2) == 0 ? 0 : 1u << 31);
 				if (op == 0)
 					return;
-				if ((double)dc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc /= op;
-				dc /= op;
+				mc /= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.NextInt64();
-				if ((double)dc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc += op;
-				dc += op;
+				mc += op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.NextInt64();
-				if ((double)dc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc -= op;
-				dc -= op;
+				mc -= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.NextInt64();
-				if ((double)dc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc *= op;
-				dc *= op;
+				mc *= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = random.NextInt64();
 				if (op == 0)
 					return;
-				if ((double)dc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc /= op;
-				dc /= op;
+				mc /= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63);
-				if ((double)dc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real + op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc += op;
-				dc += op;
+				mc += op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63);
-				if ((double)dc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real - op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc -= op;
-				dc -= op;
+				mc -= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63);
-				if ((double)dc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real * op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary * op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc *= op;
-				dc *= op;
+				mc *= op;
 				Validate(op);
 			}, () =>
 			{
 				var op = (ulong)random.NextInt64() + (random.Next(2) == 0 ? 0 : 1uL << 63);
 				if (op == 0)
 					return;
-				if ((double)dc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
-					|| (double)dc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
+				if ((double)mc.Real / op is < (double)decimal.MinValue or > (double)decimal.MaxValue
+					|| (double)mc.Imaginary / op is < (double)decimal.MinValue or > (double)decimal.MaxValue)
 					return;
 				nc /= op;
-				dc /= op;
+				mc /= op;
 				Validate(op);
 			},
 		};
 		for (var i = 0; i < 1000; i++)
 		{
-			dc = new(d, d2);
-			nc = new((double)d, (double)d2);
+			mc = new(m, m2);
+			nc = new((double)m, (double)m2);
 			actions.Random(random)();
 		}
 		if (counter++ < 10000)
 			goto l1;
-		void Validate(double op) => Assert.IsTrue(System.Numerics.Complex.Abs(nc - (System.Numerics.Complex)dc)
+		void Validate(double op) => Assert.IsTrue(System.Numerics.Complex.Abs(nc - (System.Numerics.Complex)mc)
 			<= Max(Max(Pow(10, -28), op.Shift(-50)), System.Numerics.Complex.Abs(nc).Shift(-50))
-			|| nc.Real is double.NaN && (double)dc.Real is double.NaN
-			|| nc.Imaginary is double.NaN && (double)dc.Imaginary is double.NaN);
+			|| nc.Real is double.NaN && (double)mc.Real is double.NaN
+			|| nc.Imaginary is double.NaN && (double)mc.Imaginary is double.NaN);
 	}
 
 	private static decimal ConstructDecimal(List<byte> bytes, Random random)
@@ -238,107 +238,107 @@ public class DeccomplexTests
 		for (var i = 0; i < 5000; i++)
 		{
 			bytes.FillInPlace(random.Next(9), _ => (byte)random.Next(256));
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			ProcessA(dc, nc);
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			ProcessA(mc, nc);
 		}
-		void ProcessA(Deccomplex dc, System.Numerics.Complex nc)
+		void ProcessA(Deccomplex mc, System.Numerics.Complex nc)
 		{
-			dynamic num = dc;
-			ProcessB(dc, nc, num);
-			num = dc + 1;
-			ProcessB(dc, nc, num);
-			num = dc - 1;
-			ProcessB(dc, nc, num);
-			num = dc * 2;
-			ProcessB(dc, nc, num);
-			num = dc / 2;
-			ProcessB(dc, nc, num);
-			num = dc * 3;
-			ProcessB(dc, nc, num);
-			num = dc / 3;
-			ProcessB(dc, nc, num);
+			dynamic num = mc;
+			ProcessB(mc, nc, num);
+			num = mc + 1;
+			ProcessB(mc, nc, num);
+			num = mc - 1;
+			ProcessB(mc, nc, num);
+			num = mc * 2;
+			ProcessB(mc, nc, num);
+			num = mc / 2;
+			ProcessB(mc, nc, num);
+			num = mc * 3;
+			ProcessB(mc, nc, num);
+			num = mc / 3;
+			ProcessB(mc, nc, num);
 			num = (byte)0;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = (short)0;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = (ushort)0;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = 0;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = 0u;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = 0L;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = 0uL;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = MpuT.Zero;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), num.Equals(dc));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), num.Equals(mc));
 			num = MpzT.Zero;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), num.Equals(dc));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), num.Equals(mc));
 			num = 0f;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = 0d;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num), dc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num), mc.Equals((object)num));
 			num = Deccomplex.Zero;
-			Assert.AreEqual(dc.Equals(nc) && num.Equals(nc), dc.Equals(num));
-			Assert.AreEqual(dc.Equals(nc) && num.Equals(nc), dc.Equals((object)num));
-			Assert.AreEqual(dc.Equals(nc) && num.Equals(nc), num.Equals(dc));
+			Assert.AreEqual(mc.Equals(nc) && num.Equals(nc), mc.Equals(num));
+			Assert.AreEqual(mc.Equals(nc) && num.Equals(nc), mc.Equals((object)num));
+			Assert.AreEqual(mc.Equals(nc) && num.Equals(nc), num.Equals(mc));
 		}
-		void ProcessB(Deccomplex dc, System.Numerics.Complex nc, dynamic num)
+		void ProcessB(Deccomplex mc, System.Numerics.Complex nc, dynamic num)
 		{
 			dynamic num2 = (byte)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (short)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (ushort)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (int)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (uint)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (long)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (ulong)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (MpzT)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), num2.Equals(dc));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), num2.Equals(mc));
 			num2 = (float)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (double)num.Real;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (System.Numerics.Complex)num;
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && nc.Equals(num2), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && nc.Equals(num2), mc.Equals((object)num2));
 			num2 = (Deccomplex)num;
-			Assert.AreEqual(dc.Equals(nc) && num2.Equals(nc), dc.Equals(num2));
-			Assert.AreEqual(dc.Equals(nc) && num2.Equals(nc), dc.Equals((object)num2));
+			Assert.AreEqual(mc.Equals(nc) && num2.Equals(nc), mc.Equals(num2));
+			Assert.AreEqual(mc.Equals(nc) && num2.Equals(nc), mc.Equals((object)num2));
 		}
 	}
 
@@ -348,16 +348,16 @@ public class DeccomplexTests
 		var random = Lock(lockObj, () => new Random(Global.random.Next()));
 		for (var i = 0; i < 5000; i++)
 		{
-			var d = (decimal)random.NextDouble() * (random.Next(2) == 0 ? -1 : 1);
-			var d2 = (decimal)random.NextDouble() * (random.Next(2) == 0 ? -1 : 1);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
+			var m = (decimal)random.NextDouble() * (random.Next(2) == 0 ? -1 : 1);
+			var m2 = (decimal)random.NextDouble() * (random.Next(2) == 0 ? -1 : 1);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
 			var nc2 = System.Numerics.Complex.Asin(nc);
-			var dc2 = dc.Asin();
+			var dc2 = mc.Asin();
 			var nc3 = System.Numerics.Complex.Acos(nc);
-			var dc3 = dc.Acos();
+			var dc3 = mc.Acos();
 			var nc4 = System.Numerics.Complex.Atan(nc);
-			var dc4 = dc.Atan();
+			var dc4 = mc.Atan();
 			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d).Shift(-50),
 				System.Numerics.Complex.Abs(nc2 - (System.Numerics.Complex)dc2));
 			Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(nc3), 1d).Shift(-50),
@@ -375,13 +375,13 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 10000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			if (Deccomplex.IsNaN(dc))
-				Assert.IsTrue(Deccomplex.IsNaN(dc.Log()));
-			else if (Deccomplex.IsZero(dc))
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			if (Deccomplex.IsNaN(mc))
+				Assert.IsTrue(Deccomplex.IsNaN(mc.Log()));
+			else if (Deccomplex.IsZero(mc))
 				Assert.IsTrue(nc.Equals(0));
 			else
 			{
@@ -389,7 +389,7 @@ public class DeccomplexTests
 				if (i == 29)
 					;
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)dc.Log()));
+					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)mc.Log()));
 			}
 		}
 	}
@@ -404,17 +404,17 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 5000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			if (Deccomplex.IsNaN(dc))
-				Assert.IsTrue(Deccomplex.IsNaN(complexThree.Power(dc)));
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			if (Deccomplex.IsNaN(mc))
+				Assert.IsTrue(Deccomplex.IsNaN(complexThree.Power(mc)));
 			else
 			{
 				var log = System.Numerics.Complex.Pow(new(3, 0), nc);
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(log), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)complexThree.Power(dc)));
+					System.Numerics.Complex.Abs(log - (System.Numerics.Complex)complexThree.Power(mc)));
 			}
 		}
 	}
@@ -427,17 +427,17 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 1000000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			if (dc == 0)
-				Assert.ThrowsExactly<DivideByZeroException>(() => dc.Reciproc());
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			if (mc == 0)
+				Assert.ThrowsExactly<DivideByZeroException>(() => mc.Reciproc());
 			else
 			{
 				var reciproc = System.Numerics.Complex.Reciprocal(nc);
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(reciproc), 1).Shift(-52),
-					System.Numerics.Complex.Abs(reciproc - (System.Numerics.Complex)dc.Reciproc()));
+					System.Numerics.Complex.Abs(reciproc - (System.Numerics.Complex)mc.Reciproc()));
 			}
 		}
 	}
@@ -451,13 +451,13 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 1000000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
 			var shiftAmount = random.Next(257);
-			Assert.AreEqual(nc * Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(dc << shiftAmount));
-			Assert.AreEqual(nc / Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(dc >> shiftAmount));
+			Assert.AreEqual(nc * Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(mc << shiftAmount));
+			Assert.AreEqual(nc / Math.Shift(1d, shiftAmount), (System.Numerics.Complex)(mc >> shiftAmount));
 		}
 	}
 
@@ -470,19 +470,19 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 100000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			if (Deccomplex.IsNaN(dc))
-				Assert.IsTrue(Deccomplex.IsNaN(Deccomplex.Sqrt(dc)));
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			if (Deccomplex.IsNaN(mc))
+				Assert.IsTrue(Deccomplex.IsNaN(Deccomplex.Sqrt(mc)));
 			else if (System.Numerics.Complex.Abs(nc) is > (double)decimal.MaxValue)
-				Assert.IsTrue(System.Numerics.Complex.Abs((System.Numerics.Complex)dc) is > (double)decimal.MaxValue);
+				Assert.IsTrue(System.Numerics.Complex.Abs((System.Numerics.Complex)mc) is > (double)decimal.MaxValue);
 			else
 			{
 				var sqrt = System.Numerics.Complex.Sqrt(nc);
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sqrt), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(sqrt - (System.Numerics.Complex)dc.Sqrt()));
+					System.Numerics.Complex.Abs(sqrt - (System.Numerics.Complex)mc.Sqrt()));
 			}
 		}
 	}
@@ -495,13 +495,13 @@ public class DeccomplexTests
 		for (var i = 0; i < 250000; i++)
 		{
 			var order = RandomOrder();
-			Deccomplex dc = random.Next(1000) switch
+			Deccomplex mc = random.Next(1000) switch
 			{
 				0 => new(0m, 0m),
 				_ => new(ConstructDecimal(bytes, random), ConstructDecimal(bytes, random)),
 			};
-			Deccomplex dc2 = new(dc.ToByteArray(order), order);
-			Assert.IsTrue(Deccomplex.IsNaN(dc) && Deccomplex.IsNaN(dc2) || dc.Equals(dc2));
+			Deccomplex dc2 = new(mc.ToByteArray(order), order);
+			Assert.IsTrue(Deccomplex.IsNaN(mc) && Deccomplex.IsNaN(dc2) || mc.Equals(dc2));
 		}
 		int RandomOrder() => random.Next(2) * 2 - 1;
 	}
@@ -513,11 +513,11 @@ public class DeccomplexTests
 		List<byte> bytes = new(1024);
 		for (var i = 0; i < 5000000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			Assert.AreEqual(nc, (System.Numerics.Complex)dc);
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			Assert.AreEqual(nc, (System.Numerics.Complex)mc);
 		}
 	}
 
@@ -602,26 +602,26 @@ public class DeccomplexTests
 		Assert.IsLessThanOrEqualTo(Math.Shift(1m, -50), (1 - (-Deccomplex.Pi << 1).Cos()).Abs());
 		for (var i = 0; i < 10000; i++)
 		{
-			var d = ConstructDecimal(bytes, random);
-			var d2 = ConstructDecimal(bytes, random);
-			System.Numerics.Complex nc = new((double)d, (double)d2);
-			Deccomplex dc = new(d, d2);
-			if (Deccomplex.IsNaN(dc))
+			var m = ConstructDecimal(bytes, random);
+			var m2 = ConstructDecimal(bytes, random);
+			System.Numerics.Complex nc = new((double)m, (double)m2);
+			Deccomplex mc = new(m, m2);
+			if (Deccomplex.IsNaN(mc))
 			{
-				Assert.IsTrue(Deccomplex.IsNaN(dc.Sin()));
-				Assert.IsTrue(Deccomplex.IsNaN(dc.Cos()));
-				Assert.IsTrue(Deccomplex.IsNaN(dc.Tan()));
+				Assert.IsTrue(Deccomplex.IsNaN(mc.Sin()));
+				Assert.IsTrue(Deccomplex.IsNaN(mc.Cos()));
+				Assert.IsTrue(Deccomplex.IsNaN(mc.Tan()));
 			}
 			else
 			{
 				var sin = System.Numerics.Complex.Sin(nc);
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(sin - (System.Numerics.Complex)dc.Sin()));
+					System.Numerics.Complex.Abs(sin - (System.Numerics.Complex)mc.Sin()));
 				var cos = System.Numerics.Complex.Cos(nc);
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(cos), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(cos - (System.Numerics.Complex)dc.Cos()));
+					System.Numerics.Complex.Abs(cos - (System.Numerics.Complex)mc.Cos()));
 				Assert.IsLessThanOrEqualTo(Max(System.Numerics.Complex.Abs(sin / cos), 1d).Shift(-50),
-					System.Numerics.Complex.Abs(sin / cos - (System.Numerics.Complex)dc.Tan()));
+					System.Numerics.Complex.Abs(sin / cos - (System.Numerics.Complex)mc.Tan()));
 			}
 		}
 	}

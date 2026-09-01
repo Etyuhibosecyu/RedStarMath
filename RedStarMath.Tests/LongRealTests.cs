@@ -351,7 +351,7 @@ public class LongRealTests
 				Assert.AreEqual(Sign(r.CompareTo(r2)), Sign(lr.CompareTo(lr2)));
 		}
 		Assert.Throws<ArgumentNullException>(() => x.CompareTo((MpzT)null!));
-		Assert.Throws<ArgumentNullException>(() => x.CompareTo((MpuT)null!));
+		Assert.Throws<ArgumentNullException>(() => x.CompareTo(null!));
 	}
 
 	[TestMethod]

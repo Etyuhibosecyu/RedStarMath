@@ -49,9 +49,9 @@ public class MathTests
 #pragma warning restore IDE0079 // Удалить ненужное подавление
 				continue;
 			}
-			var d = r.ToDecimal();
-			var d2 = r2.ToDecimal();
-			if (!(d.ToDouble().Equals(r) && d2.ToDouble().Equals(r2)))
+			var m = r.ToDecimal();
+			var m2 = r2.ToDecimal();
+			if (!(m.ToReal().Equals(r) && m2.ToReal().Equals(r2)))
 			{
 #pragma warning disable IDE0079 // Удалить ненужное подавление
 #pragma warning disable S127
@@ -61,8 +61,8 @@ public class MathTests
 				continue;
 			}
 			var atan = Atan2(r, r2);
-			var dAtan = Math.Atan2(d, d2);
-			Assert.IsLessThanOrEqualTo(Math.Shift(Max(Abs(atan), 1), -52), Abs(atan - dAtan.ToDouble()));
+			var dAtan = Math.Atan2(m, m2);
+			Assert.IsLessThanOrEqualTo(Math.Shift(Max(Abs(atan), 1), -52), Abs(atan - dAtan.ToReal()));
 		}
 	}
 
@@ -85,30 +85,30 @@ public class MathTests
 				var r = BitConverter.ToDouble(bytes.AsSpan());
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				if (!d.ToDouble().Equals(r))
+				var m = r.ToDecimal();
+				if (!m.ToReal().Equals(r))
 					continue;
 				var sinh = Sinh(r);
 				if (!(sinh is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue
 					|| Abs(r) < Math.Shift(1d, -52)))
-					Assert.IsLessThanOrEqualTo(Max(sinh.Abs(), 1).Shift(-50), Abs(sinh - d.Sinh().ToDouble()));
+					Assert.IsLessThanOrEqualTo(Max(sinh.Abs(), 1).Shift(-50), Abs(sinh - m.Sinh().ToReal()));
 				var cosh = Cosh(r);
 				if (!(cosh is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue
 					|| Abs(r) < Math.Shift(1d, -52)))
-					Assert.IsLessThanOrEqualTo(Max(cosh.Abs(), 1).Shift(-50), Abs(cosh - d.Cosh().ToDouble()));
+					Assert.IsLessThanOrEqualTo(Max(cosh.Abs(), 1).Shift(-50), Abs(cosh - m.Cosh().ToReal()));
 				var tanh = Tanh(r);
 				if (!(tanh is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue
 					|| Abs(r) < Math.Shift(1d, -52)))
-					Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(tanh - d.Tanh().ToDouble()));
+					Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(tanh - m.Tanh().ToReal()));
 				break;
 			}
 		}
 		for (var i = 0; i < 10000; i++)
 		{
 			var r = (1 - random.NextDouble()) * PI / 2;
-			var d = r.ToDecimal();
-			Assert.IsLessThan(d, d.Sin());
-			Assert.IsGreaterThan(d, d.Tan());
+			var m = r.ToDecimal();
+			Assert.IsLessThan(m, m.Sin());
+			Assert.IsGreaterThan(m, m.Tan());
 		}
 	}
 
@@ -123,14 +123,14 @@ public class MathTests
 				var r = random.NextDouble();
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				var sinh = d / (1 - d);
+				var m = r.ToDecimal();
+				var sinh = m / (1 - m);
 				var sinh2 = sinh.Asinh().Sinh();
 				Assert.IsLessThanOrEqualTo(Max(sinh, 1m).ShiftDec(-27), (sinh - sinh2).Abs());
-				var cosh = d.Reciproc();
+				var cosh = m.Reciproc();
 				var cosh2 = cosh.Acosh().Cosh();
 				Assert.IsLessThanOrEqualTo(Max(cosh, 1m).ShiftDec(-27), (cosh - cosh2).Abs());
-				var tanh = d * 2 - 1;
+				var tanh = m * 2 - 1;
 				var tanh2 = tanh.Atanh().Tanh();
 				Assert.IsLessThanOrEqualTo(Max(tanh, 1m).ShiftDec(-27), (tanh - tanh2).Abs());
 				break;
@@ -149,13 +149,13 @@ public class MathTests
 				var r = random.NextDouble() * (random.Next(2) == 0 ? -1 : 1);
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				var d2 = d.Asin().Sin();
-				var d3 = d.Acos().Cos();
-				var d4 = d.Atan().Tan();
-				Assert.IsLessThanOrEqualTo(1e-28m, (d - d2).Abs());
-				Assert.IsLessThanOrEqualTo(1e-28m, (d - d3).Abs());
-				Assert.IsLessThanOrEqualTo(1e-28m, (d - d4).Abs());
+				var m = r.ToDecimal();
+				var m2 = m.Asin().Sin();
+				var m3 = m.Acos().Cos();
+				var m4 = m.Atan().Tan();
+				Assert.IsLessThanOrEqualTo(1e-28m, (m - m2).Abs());
+				Assert.IsLessThanOrEqualTo(1e-28m, (m - m3).Abs());
+				Assert.IsLessThanOrEqualTo(1e-28m, (m - m4).Abs());
 				break;
 			}
 		}
@@ -183,10 +183,10 @@ public class MathTests
 				var r = Abs(BitConverter.ToDouble(bytes.AsSpan()));
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				var log = d.Log();
-				var dLog = Log((double)d);
-				Assert.IsLessThanOrEqualTo(Max(Abs(dLog), 1).Shift(-51), Abs(dLog - log.ToDouble()));
+				var m = r.ToDecimal();
+				var log = m.Log();
+				var dLog = Log((double)m);
+				Assert.IsLessThanOrEqualTo(Max(Abs(dLog), 1).Shift(-51), Abs(dLog - log.ToReal()));
 				break;
 			}
 		}
@@ -214,15 +214,15 @@ public class MathTests
 				var r = Abs(BitConverter.ToDouble(bytes.AsSpan()));
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				var dn = d.Log().Exp();
-				Assert.IsLessThanOrEqualTo(Max(d, 1m).ShiftDec(-27), (d - dn).Abs());
-				var d2 = 2m.Power(d.Log2());
-				Assert.IsLessThanOrEqualTo(Max(d, 1m).ShiftDec(-26), (d - d2).Abs());
-				var d10 = 10m.Power(d.Log10());
-				Assert.IsLessThanOrEqualTo(Max(d, 1m).ShiftDec(-26), (d - d10).Abs());
-				var d3 = 3m.Power(d.Log(3));
-				Assert.IsLessThanOrEqualTo(Max(d, 1m).ShiftDec(-27), (d - d3).Abs());
+				var m = r.ToDecimal();
+				var dn = m.Log().Exp();
+				Assert.IsLessThanOrEqualTo(Max(m, 1m).ShiftDec(-27), (m - dn).Abs());
+				var m2 = 2m.Power(m.Log2());
+				Assert.IsLessThanOrEqualTo(Max(m, 1m).ShiftDec(-26), (m - m2).Abs());
+				var d10 = 10m.Power(m.Log10());
+				Assert.IsLessThanOrEqualTo(Max(m, 1m).ShiftDec(-26), (m - d10).Abs());
+				var m3 = 3m.Power(m.Log(3));
+				Assert.IsLessThanOrEqualTo(Max(m, 1m).ShiftDec(-27), (m - m3).Abs());
 				break;
 			}
 		}
@@ -250,12 +250,12 @@ public class MathTests
 				if (shifted is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue
 					|| Abs(shifted) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				if (!d.ToDouble().Equals(r))
+				var m = r.ToDecimal();
+				if (!m.ToReal().Equals(r))
 					continue;
-				var dShifted = d.Shift(shiftAmount);
+				var dShifted = m.Shift(shiftAmount);
 				var epsilon = Math.Shift(Max(Abs(shifted), 1), -52);
-				Assert.IsLessThanOrEqualTo(epsilon, Abs(shifted - dShifted.ToDouble()));
+				Assert.IsLessThanOrEqualTo(epsilon, Abs(shifted - dShifted.ToReal()));
 				break;
 			}
 		}
@@ -284,12 +284,12 @@ public class MathTests
 				if (sqrt is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue
 					|| Abs(sqrt) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				if (!d.ToDouble().Equals(r))
+				var m = r.ToDecimal();
+				if (!m.ToReal().Equals(r))
 					continue;
-				var dSqrt = d.Sqrt();
+				var dSqrt = m.Sqrt();
 				var epsilon = Math.Shift(Max(Abs(sqrt), 1), -52);
-				Assert.IsLessThanOrEqualTo(epsilon, Abs(sqrt - dSqrt.ToDouble()));
+				Assert.IsLessThanOrEqualTo(epsilon, Abs(sqrt - dSqrt.ToReal()));
 				break;
 			}
 		}
@@ -312,8 +312,8 @@ public class MathTests
 				var r = BitConverter.ToDouble(bytes.AsSpan());
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -50))
 					continue;
-				var d = r.ToDecimal();
-				Assert.AreEqual(r.ToString("F28").Take(29).ToString(x => x), d.ToString("F28").Take(29).ToString(x => x));
+				var m = r.ToDecimal();
+				Assert.AreEqual(r.ToString("F28").Take(29).ToString(x => x), m.ToString("F28").Take(29).ToString(x => x));
 				break;
 			}
 		}
@@ -336,8 +336,8 @@ public class MathTests
 				var r = BitConverter.ToDouble(bytes.AsSpan());
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -50))
 					continue;
-				var d = r.ToDecimal();
-				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -64), r - d.ToDouble());
+				var m = r.ToDecimal();
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -64), r - m.ToReal());
 				break;
 			}
 		}
@@ -372,21 +372,21 @@ public class MathTests
 				var r = Pow(2, random.NextDouble() * 128 - 64);
 				if (r is double.NaN or < (double)decimal.MinValue or > (double)decimal.MaxValue || Abs(r) < Math.Shift(1d, -52))
 					continue;
-				var d = r.ToDecimal();
-				if (!d.ToDouble().Equals(r))
+				var m = r.ToDecimal();
+				if (!m.ToReal().Equals(r))
 					continue;
-				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Sin(r) - d.Sin().ToDouble()));
-				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Cos(r) - d.Cos().ToDouble()));
-				Assert.IsLessThanOrEqualTo(Max(Tan(r).Abs().Power(1.5), 1).Shift(-52), Abs(Tan(r) - d.Tan().ToDouble()));
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Sin(r) - m.Sin().ToReal()));
+				Assert.IsLessThanOrEqualTo(Math.Shift(1d, -52), Abs(Cos(r) - m.Cos().ToReal()));
+				Assert.IsLessThanOrEqualTo(Max(Tan(r).Abs().Power(1.5), 1).Shift(-52), Abs(Tan(r) - m.Tan().ToReal()));
 				break;
 			}
 		}
 		for (var i = 0; i < 10000; i++)
 		{
 			var r = (1 - random.NextDouble()) * PI / 2;
-			var d = r.ToDecimal();
-			Assert.IsLessThan(d, d.Sin());
-			Assert.IsGreaterThan(d, d.Tan());
+			var m = r.ToDecimal();
+			Assert.IsLessThan(m, m.Sin());
+			Assert.IsGreaterThan(m, m.Tan());
 		}
 	}
 }

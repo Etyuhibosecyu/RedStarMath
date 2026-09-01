@@ -6,14 +6,14 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 	protected static abstract Func<T, T, TSelf> Creator { get; }
 	internal T Imaginary { get; }
 	internal static TSelf ImaginaryOne { get; } = TSelf.Creator(T.Zero, T.One);
-	internal T Magnitude => AbsInterface((TSelf)this);
+	internal T MagnitudeInterface => AbsInterface((TSelf)this);
 	internal static TSelf OneInterface { get; } = TSelf.Creator(T.One, T.Zero);
-	internal T Phase => Atan2(Imaginary, Real);
+	internal T PhaseInterface => Atan2(Imaginary, Real);
 
 	private static T PositiveInfinity => T.Zero switch
 	{
 		double => T.CreateTruncating(double.PositiveInfinity),
-		decimal => throw new OverflowException("Тип decimal не поддерживает бесконечность."),
+		decimal => throw new OverflowException("Тип decimal не поддерживает бесконечность и неопределенность."),
 		LongReal => T.CreateTruncating(LongReal.PositiveInfinity),
 		LongDecimal => T.CreateTruncating(LongDecimal.PositiveInfinity),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
@@ -28,7 +28,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Abs(r)),
 		decimal d => T.CreateTruncating(Math.Abs(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Abs(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Abs(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Abs(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -92,7 +92,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Cos(r)),
 		decimal d => T.CreateTruncating(Math.Cos(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cos(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Cos(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Cos(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -109,7 +109,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Cosh(r)),
 		decimal d => T.CreateTruncating(Math.Cosh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Cosh(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Cosh(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Cosh(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -148,7 +148,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Exp(r)),
 		decimal d => T.CreateTruncating(Math.Exp(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Exp(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Exp(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Exp(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -178,7 +178,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Log(r)),
 		decimal d => T.CreateTruncating(Math.Log(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Ln(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Ln(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Ln(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -228,7 +228,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Sin(r)),
 		decimal d => T.CreateTruncating(Math.Sin(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sin(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Sin(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Sin(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -245,7 +245,7 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Sinh(r)),
 		decimal d => T.CreateTruncating(Math.Sinh(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sinh(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Sinh(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Sinh(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
@@ -262,15 +262,40 @@ internal interface IComplexNumber<T, TSelf> : INumber<TSelf>
 		double r => T.CreateTruncating(Math.Sqrt(r)),
 		decimal d => T.CreateTruncating(Math.Sqrt(d)),
 		LongReal lr => T.CreateTruncating(LongReal.Sqrt(lr)),
-		LongDecimal ld => T.CreateTruncating(LongDecimal.Sqrt(ld)),
+		LongDecimal lm => T.CreateTruncating(LongDecimal.Sqrt(lm)),
 		_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
 			+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
 	};
 
-	internal static TSelf SqrtInterface(TSelf value) =>
-		FromPolarCoordinatesInterface(Sqrt(value.Magnitude), value.Phase / (T.One + T.One));
+	internal static TSelf SqrtInterface(TSelf value)
+	{
+		if (TSelf.IsZero(value))
+			return TSelf.Zero;
+		else if (TSelf.IsPositiveInfinity(value))
+			return TSelf.Creator(value.Real switch
+			{
+				double r => (T)(object)double.PositiveInfinity,
+				decimal d => throw new OverflowException("Тип decimal не поддерживает бесконечность и неопределенность."),
+				LongReal lr => (T)(object)LongReal.PositiveInfinity,
+				LongDecimal lm => (T)(object)LongReal.PositiveInfinity,
+				_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
+					+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
+			}, T.Zero);
+		else if (TSelf.IsNegativeInfinity(value))
+			return TSelf.Creator(value.Real switch
+			{
+				double r => (T)(object)double.NaN,
+				decimal d => throw new OverflowException("Тип decimal не поддерживает бесконечность и неопределенность."),
+				LongReal lr => (T)(object)LongReal.NaN,
+				LongDecimal lm => (T)(object)LongReal.NaN,
+				_ => throw new InvalidCastException("Поддерживаются типы double, decimal, "
+					+ nameof(LongReal) + " и " + nameof(LongDecimal) + '.'),
+			}, T.Zero);
+		return FromPolarCoordinatesInterface(Sqrt(value.MagnitudeInterface), value.PhaseInterface / (T.One + T.One));
+	}
+
 	internal static TSelf SquareInterface(TSelf value) =>
-		FromPolarCoordinatesInterface(value.Magnitude * value.Magnitude, value.Phase * (T.One + T.One));
+		FromPolarCoordinatesInterface(value.MagnitudeInterface * value.MagnitudeInterface, value.PhaseInterface * (T.One + T.One));
 	internal static TSelf TanInterface(TSelf value) => SinInterface(value) / CosInterface(value);
 	internal static TSelf TanhInterface(TSelf value) => SinhInterface(value) / CoshInterface(value);
 	internal string ToStringInterface(string? format) =>

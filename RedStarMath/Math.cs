@@ -25,6 +25,9 @@ public static class Math
 	public const decimal DecimalE = MathM.E, DecimalPi = MathM.PI, DecimalTau = 2 * MathM.PI;
 	public const decimal DecimalLn2 = 0.6931471805599453094172321215m, DecimalLn10 = 2.302585092994045684017991455m;
 	public const decimal DecimalLog10of2 = 0.3010299956639811952137388947m;
+	public const decimal DecimalMin = -79_228_162_514_264_337_593_543_950_335m;
+	public const decimal DecimalMax = 79_228_162_514_264_337_593_543_950_335m;
+	public const decimal DecimalEpsilon = 0.0000000000000000000000000001m;
 
 	/// <inheritdoc cref="System.Math.Abs(decimal)"/>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1118,10 +1121,85 @@ public static class Math
 	public static double Tanh(this double value) => System.Math.Tanh(value);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this byte value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this int value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this long value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this MpzT value) => (char)(ushort)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this MpuT value) => (char)(ushort)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this short value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this uint value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this ulong value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static char ToChar(this ushort value) => (char)value;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static decimal ToDecimal(this double value) => decimal.Parse(value.ToString("F28").Take(29).AsSpan());
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static double ToDouble(this decimal value) => double.Parse(value.ToString("F28"));
+	public static double ToReal(this decimal value) => double.Parse(value.ToString("F28"));
+
+	/// <summary>
+	/// Преобразует указанное число из знакового типа в ближайший беззнаковый:
+	/// для short int - unsigned short int, для int - unsigned int, для long int - unsigned long int,
+	/// для long long - unsigned long long.
+	/// </summary>
+	/// <param name="value">Число, которое нужно преобразовать в беззнаковый тип.</param>
+	/// <returns>Для нуля - ноль;<br />
+	/// для положительных чисел - беззнаковый эквивалент этого числа;<br />
+	/// для отрицательных чисел - беззнаковый эквивалент модуля этого числа.</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static uint ToUnsigned(this int value) => (uint)Abs(value);
+
+	/// <summary>
+	/// Преобразует указанное число из знакового типа в ближайший беззнаковый:
+	/// для short int - unsigned short int, для int - unsigned int, для long int - unsigned long int,
+	/// для long long - unsigned long long.
+	/// </summary>
+	/// <param name="value">Число, которое нужно преобразовать в беззнаковый тип.</param>
+	/// <returns>Для нуля - ноль;<br />
+	/// для положительных чисел - беззнаковый эквивалент этого числа;<br />
+	/// для отрицательных чисел - беззнаковый эквивалент модуля этого числа.</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static ulong ToUnsigned(this long value) => (ulong)Abs(value);
+
+	/// <summary>
+	/// Преобразует указанное число из знакового типа в ближайший беззнаковый:
+	/// для short int - unsigned short int, для int - unsigned int, для long int - unsigned long int,
+	/// для long long - unsigned long long.
+	/// </summary>
+	/// <param name="value">Число, которое нужно преобразовать в беззнаковый тип.</param>
+	/// <returns>Для нуля - ноль;<br />
+	/// для положительных чисел - беззнаковый эквивалент этого числа;<br />
+	/// для отрицательных чисел - беззнаковый эквивалент модуля этого числа.</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static MpuT ToUnsigned(this MpzT value) => (MpuT)value.Abs();
+
+	/// <summary>
+	/// Преобразует указанное число из знакового типа в ближайший беззнаковый:
+	/// для short int - unsigned short int, для int - unsigned int, для long int - unsigned long int,
+	/// для long long - unsigned long long.
+	/// </summary>
+	/// <param name="value">Число, которое нужно преобразовать в беззнаковый тип.</param>
+	/// <returns>Для нуля - ноль;<br />
+	/// для положительных чисел - беззнаковый эквивалент этого числа;<br />
+	/// для отрицательных чисел - беззнаковый эквивалент модуля этого числа.</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static ushort ToUnsigned(this short value) => (ushort)Abs(value);
 
 	/// <summary>
 	/// Возвращает наибольшее целое число, которое не больше указанного числа, для положительных,

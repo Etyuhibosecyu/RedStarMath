@@ -130,7 +130,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	private int MantissaByteLength => GetArrayLength(MantissaLength, 8);
 	int IUnsignedLongReal<UnsignedLongReal>.MantissaByteLength => MantissaByteLength;
 	int IUnsignedLongReal<UnsignedLongReal>.MantissaLength => MantissaLength;
-	private MpuT MantissaMask => MantissaMasks.GetOrAdd(MantissaLength, x => MantissaOverflow - 1);
+	private MpuT MantissaMask => MantissaMasks.GetOrAdd(MantissaLength, x => MantissaOverflow - 1u);
 	private MpuT MantissaOverflow => MantissaOverflows.GetOrAdd(MantissaLength, x => MpuT.One << x);
 	MpuT IUnsignedLongReal<UnsignedLongReal>.MantissaOverflow => MantissaOverflow;
 	public static UnsignedLongReal MultiplicativeIdentity => One;
@@ -228,9 +228,9 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	public int CompareTo(object? obj) => obj switch
 	{
 		null => 1,
-		byte y => CompareTo(y),
+		byte y => CompareTo((int)y),
 		short si => CompareTo(si),
-		ushort usi => CompareTo(usi),
+		ushort usi => CompareTo((int)usi),
 		int i => CompareTo(i),
 		uint ui => CompareTo(ui),
 		long li => CompareTo(li),
@@ -253,7 +253,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			if (y is null)
 				return new(MpuTTwo, null);
 			if (x.e is null && y.e is null)
-				return new(Math.Sign(x.m.CompareTo(y.m)) + MpuT.One, null);
+				return new((MpuT)(Math.Sign(x.m.CompareTo(y.m)) + MpuT.One), null);
 			if (x.e is null
 				&& (x.MantissaLength <= y.MantissaLength || y.e!.e is not null || Mpir.MpuCmpSi(y.e.m, int.MaxValue) > 1))
 				return new(MpuT.Zero, null);
@@ -266,14 +266,14 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			if (Mpir.MpuCmpSi(compared, 1) != 0)
 				return new(compared, null);
 			if (x.e is null)
-				return new(Math.Sign(x.m.CompareTo(y.MantissaOverflow + y.m << (int)y.e! - 1)) + MpuT.One, null);
+				return new((MpuT)(Math.Sign(x.m.CompareTo(y.MantissaOverflow + y.m << (int)y.e! - 1)) + MpuT.One), null);
 			else if (y.e is null)
-				return new(Math.Sign((x.MantissaOverflow + x.m << (int)x.e! - 1).CompareTo(y.m)) + MpuT.One, null);
+				return new((MpuT)(Math.Sign((x.MantissaOverflow + x.m << (int)x.e! - 1).CompareTo(y.m)) + MpuT.One), null);
 			var mlDiff = x.MantissaLength - y.MantissaLength;
 			if (mlDiff >= 0)
-				return new(Math.Sign(x.m.CompareTo(y.m << mlDiff)) + MpuT.One, null);
+				return new((MpuT)(Math.Sign(x.m.CompareTo(y.m << mlDiff)) + MpuT.One), null);
 			else
-				return new(Math.Sign((x.m << -mlDiff).CompareTo(y.m)) + MpuT.One, null);
+				return new((MpuT)(Math.Sign((x.m << -mlDiff).CompareTo(y.m)) + MpuT.One), null);
 			case ComputeOperation.ChangeML:
 			var mantissaLength = (int)y.m >>> 1;
 			if (mantissaLength == x.MantissaLength)
@@ -306,7 +306,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			if (Mpir.MpuCmpSi(Compute(y, x, ComputeOperation.Compare).m, 1) > 0)
 				(x, y) = (y, x);
 			var mantissaOverflow = MpuT.One << mantissaLength;
-			var mantissaMask = mantissaOverflow - 1;
+			var mantissaMask = mantissaOverflow - 1u;
 			var xmlDiff = mantissaLength - x.MantissaLength;
 			var ymlDiff = mantissaLength - y.MantissaLength;
 			xBitLength = Compute(x, null!, ComputeOperation.BitLength);
@@ -386,7 +386,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			if (y.e is null && Mpir.MpuCmpSi(y.m, 0) == 0)
 				return Compute(x, (long)mantissaLength << 1 | 1, ComputeOperation.ChangeML);
 			mantissaOverflow = MpuT.One << mantissaLength;
-			mantissaMask = mantissaOverflow - 1;
+			mantissaMask = mantissaOverflow - 1u;
 			x = Compute(x, (long)mantissaLength << 1, ComputeOperation.ChangeML);
 			y = Compute(y, (long)mantissaLength << 1, ComputeOperation.ChangeML);
 			if (x.e is null && y.e is null)
@@ -475,8 +475,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 					MantissaLength), remainder);
 			var quotient = (mantissaOverflow + m << MantissaLength + 1) / x;
 			var shiftAmount = quotient.BitLength - MantissaLength - 1;
-			return (new(quotient.ShiftRightRound(shiftAmount) & MantissaMask, e + shiftAmount - MantissaLength - 1,
-				MantissaLength), MpuT.Zero);
+			return (new(quotient.ShiftRightRound(shiftAmount) & MantissaMask,
+				e + (uint)shiftAmount - (uint)MantissaLength - 1u, MantissaLength), MpuT.Zero);
 		}
 		else if (e is null || e < x.BitLength - MantissaLength - 1)
 			return (new(0, MantissaLength), (MpuT)this);
@@ -500,7 +500,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	{
 		var maxMantissaLength = Math.Max(MantissaLength, x.MantissaLength);
 		var mantissaOverflow = MantissaOverflows.GetOrAdd(maxMantissaLength, x => MpuT.One << x);
-		var mantissaMask = mantissaOverflow - 1;
+		var mantissaMask = mantissaOverflow - 1u;
 		var this2 = GetWithOtherML(maxMantissaLength, false);
 		x = x.GetWithOtherML(maxMantissaLength, false);
 		if (this2.e is null && x.e is null)
@@ -520,7 +520,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 					maxMantissaLength), new(remainder, maxMantissaLength));
 			var quotient = (mantissaOverflow + this2.m << maxMantissaLength + 1) / x.m;
 			var shiftAmount = quotient.BitLength - maxMantissaLength - 1;
-			return (new(quotient.ShiftRightRound(shiftAmount) & mantissaMask, this2.e + shiftAmount - maxMantissaLength - 1,
+			return (new(quotient.ShiftRightRound(shiftAmount) & mantissaMask,
+				this2.e + (uint)shiftAmount - (uint)maxMantissaLength - 1u,
 				maxMantissaLength), new(0, maxMantissaLength));
 		}
 		else if (this2.e is null || this2.e < x.e)
@@ -535,7 +536,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		{
 			var quotient = (mantissaOverflow + this2.m << maxMantissaLength + 1) / (mantissaOverflow + x.m);
 			var shiftAmount = quotient.BitLength - maxMantissaLength - 1;
-			return (new(quotient.ShiftRightRound(shiftAmount) & mantissaMask, this2.e - x.e + shiftAmount - maxMantissaLength,
+			return (new(quotient.ShiftRightRound(shiftAmount) & mantissaMask,
+				this2.e - x.e + new UnsignedLongReal(shiftAmount) - new UnsignedLongReal(maxMantissaLength),
 				maxMantissaLength), new(0, maxMantissaLength));
 		}
 	}
@@ -647,9 +649,9 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	public override bool Equals(object? obj) => obj switch
 	{
 		null => false,
-		byte y => CompareTo(y) == 0,
+		byte y => CompareTo((int)y) == 0,
 		short si => CompareTo(si) == 0,
-		ushort usi => CompareTo(usi) == 0,
+		ushort usi => CompareTo((int)usi) == 0,
 		int i => CompareTo(i) == 0,
 		uint ui => CompareTo(ui) == 0,
 		long li => CompareTo(li) == 0,
@@ -710,8 +712,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	public static UnsignedLongReal Log2(UnsignedLongReal value)
 	{
 		var bitLength = value.BitLength;
-		var sqrt = (new UnsignedLongReal(1, value.MantissaByteLength) << bitLength << bitLength - 1).Sqrt();
-		return value >= sqrt ? bitLength : bitLength - 1;
+		var sqrt = (new UnsignedLongReal(1, value.MantissaByteLength) << bitLength << bitLength - One).Sqrt();
+		return value >= sqrt ? bitLength : bitLength - One;
 	}
 
 	public static UnsignedLongReal Max(UnsignedLongReal x, UnsignedLongReal y) => x.CompareTo(y) >= 0 ? x : y;
@@ -814,7 +816,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	ulong IConvertible.ToUInt64(IFormatProvider? provider) => (ulong)this;
 
 	public static UnsignedLongReal TrailingZeroCount(UnsignedLongReal value) =>
-		MpuT.TrailingZeroCount(value.m) + (value.e is null ? 0 : (value.e - 1));
+		MpuT.TrailingZeroCount(value.m) + (value.e is null ? Zero : (value.e - One));
 
 	private static bool TryConvertFromChecked<TOther>(TOther value, [MaybeNullWhen(false)] out UnsignedLongReal result)
 	{
@@ -873,8 +875,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				uint ui => ui,
 				long li => li,
 				ulong uli => uli,
-				float f => (MpuT)MathF.Ceiling(MathF.Abs(f)) * MathF.Sign(f),
-				double d => (MpuT)Math.Ceiling(Math.Abs(d)) * Math.Sign(d),
+				float f => (MpuT)(MathF.Ceiling(MathF.Abs(f)) * MathF.Sign(f)),
+				double d => (MpuT)(Math.Ceiling(Math.Abs(d)) * Math.Sign(d)),
 				string s => new(s),
 				_ => throw new InvalidCastException("Поддерживаются следующие типы: " + nameof(MpzT)
 				+ ", byte, sbyte, short, ushort, int, uint, long, ulong, float, double, string."),
@@ -1053,7 +1055,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 
 	public static implicit operator UnsignedLongReal(byte value) => new((uint)value);
 	public static implicit operator UnsignedLongReal(short value) => new(value, MinMantissaLength);
-	public static implicit operator UnsignedLongReal(ushort value) => new(value, MinMantissaLength);
+	public static implicit operator UnsignedLongReal(ushort value) => new((uint)value, MinMantissaLength);
 	public static implicit operator UnsignedLongReal(int value) => new(value, MinMantissaLength);
 	public static implicit operator UnsignedLongReal(uint value) => new(value);
 	public static implicit operator UnsignedLongReal(long value) => new(value);
@@ -1122,48 +1124,147 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		throw new NotSupportedException(NoNegativeNumbers);
 
 	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator +(int x, UnsignedLongReal y) => y + x;
+	public static UnsignedLongReal operator +(byte x, UnsignedLongReal y) => (uint)x + y;
 	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator +(UnsignedLongReal x, int y) =>
-		y < 0 ? x - new UnsignedLongReal(-y) : x + new UnsignedLongReal(y);
+	public static UnsignedLongReal operator +(UnsignedLongReal x, byte y) => x + (uint)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(short x, UnsignedLongReal y) => (int)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(UnsignedLongReal x, short y) => x + (int)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(ushort x, UnsignedLongReal y) => (uint)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(UnsignedLongReal x, ushort y) => x + (uint)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(int x, UnsignedLongReal y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(UnsignedLongReal x, int y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(uint x, UnsignedLongReal y) => new UnsignedLongReal(x) + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(UnsignedLongReal x, uint y) => x + new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(long x, UnsignedLongReal y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(UnsignedLongReal x, long y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(ulong x, UnsignedLongReal y) => new UnsignedLongReal(x) + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(UnsignedLongReal x, ulong y) => x + new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(MpzT x, UnsignedLongReal y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(UnsignedLongReal x, MpzT y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(MpuT x, UnsignedLongReal y) => new UnsignedLongReal(x) + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator +(UnsignedLongReal x, MpuT y) => x + new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(double x, UnsignedLongReal y) => x + (LongReal)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator +(UnsignedLongReal x, double y) => (LongReal)x + y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator +(decimal x, UnsignedLongReal y) => x + (LongDecimal)y;
+	/// <inheritdoc cref="operator +(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator +(UnsignedLongReal x, decimal y) => (LongDecimal)x + y;
 	public static UnsignedLongReal operator +(UnsignedLongReal x, UnsignedLongReal y) =>
 		Compute(x, y, ComputeOperation.Add);
 	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator -(UnsignedLongReal x, int y) =>
-		y < 0 ? x + new UnsignedLongReal(-y) : x - new UnsignedLongReal(y);
+	public static UnsignedLongReal operator -(byte x, UnsignedLongReal y) => (uint)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(UnsignedLongReal x, byte y) => x - (uint)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(short x, UnsignedLongReal y) => (int)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(UnsignedLongReal x, short y) => x - (int)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(ushort x, UnsignedLongReal y) => (uint)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(UnsignedLongReal x, ushort y) => x - (uint)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(int x, UnsignedLongReal y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(UnsignedLongReal x, int y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(uint x, UnsignedLongReal y) => new UnsignedLongReal(x) - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(UnsignedLongReal x, uint y) => x - new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(long x, UnsignedLongReal y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(UnsignedLongReal x, long y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(ulong x, UnsignedLongReal y) => new UnsignedLongReal(x) - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(UnsignedLongReal x, ulong y) => x - new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(MpzT x, UnsignedLongReal y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(UnsignedLongReal x, MpzT y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(MpuT x, UnsignedLongReal y) => new UnsignedLongReal(x) - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator -(UnsignedLongReal x, MpuT y) => x - new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(double x, UnsignedLongReal y) => x - (LongReal)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator -(UnsignedLongReal x, double y) => (LongReal)x - y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator -(decimal x, UnsignedLongReal y) => x - (LongDecimal)y;
+	/// <inheritdoc cref="operator -(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator -(UnsignedLongReal x, decimal y) => (LongDecimal)x - y;
 	public static UnsignedLongReal operator -(UnsignedLongReal x, UnsignedLongReal y) =>
 		Compute(x, y, ComputeOperation.Subtract);
 	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator *(int x, UnsignedLongReal y) => y * x;
+	public static UnsignedLongReal operator *(byte x, UnsignedLongReal y) => y * x;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(short x, UnsignedLongReal y) => y * x;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(ushort x, UnsignedLongReal y) => y * x;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(int x, UnsignedLongReal y) => y * x;
 	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
 	public static UnsignedLongReal operator *(uint x, UnsignedLongReal y) => y * x;
 
 	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator *(UnsignedLongReal x, int y)
-	{
-		var MantissaLength = x.MantissaLength;
-		var MantissaOverflow = MpuT.One << MantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
-		if (x.e is null)
-			return new(x.m * y, MantissaLength);
-		else
-		{
-			if (y == 0)
-				return new(0, MantissaLength);
-			else if (y == 1)
-				return x;
-			var product = (MantissaOverflow + x.m) * y;
-			var shiftAmount = product.BitLength - MantissaLength - 1;
-			return new(product.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount, MantissaLength);
-		}
-	}
+	public static UnsignedLongReal operator *(UnsignedLongReal x, byte y) => x * (uint)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(UnsignedLongReal x, short y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(UnsignedLongReal x, ushort y) => x * (uint)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(UnsignedLongReal x, int y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(long x, UnsignedLongReal y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(UnsignedLongReal x, long y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(ulong x, UnsignedLongReal y) => new UnsignedLongReal(x) * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(UnsignedLongReal x, ulong y) => x * new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(MpzT x, UnsignedLongReal y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(UnsignedLongReal x, MpzT y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(MpuT x, UnsignedLongReal y) => new UnsignedLongReal(x) * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator *(UnsignedLongReal x, MpuT y) => x * new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(double x, UnsignedLongReal y) => x * (LongReal)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator *(UnsignedLongReal x, double y) => (LongReal)x * y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator *(decimal x, UnsignedLongReal y) => x * (LongDecimal)y;
+	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator *(UnsignedLongReal x, decimal y) => (LongDecimal)x * y;
 
 	/// <inheritdoc cref="operator *(UnsignedLongReal, UnsignedLongReal)"/>
 	public static UnsignedLongReal operator *(UnsignedLongReal x, uint y)
 	{
 		var MantissaLength = x.MantissaLength;
 		var MantissaOverflow = MpuT.One << MantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		if (x.e is null)
 			return new(x.m * y, MantissaLength);
 		else
@@ -1174,7 +1275,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				return x;
 			var product = (MantissaOverflow + x.m) * y;
 			var shiftAmount = product.BitLength - MantissaLength - 1;
-			return new(product.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount, MantissaLength);
+			return new(product.ShiftRightRound(shiftAmount) & MantissaMask,
+				x.e + new UnsignedLongReal(shiftAmount), MantissaLength);
 		}
 	}
 
@@ -1182,7 +1284,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
 		var MantissaOverflow = MpuT.One << maxMantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		x = x.GetWithOtherML(maxMantissaLength, false);
 		y = y.GetWithOtherML(maxMantissaLength, false);
 		if (x.e is null && y.e is null)
@@ -1196,7 +1298,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				return x;
 			var product = (MantissaOverflow + x.m) * y.m;
 			var shiftAmount = product.BitLength - maxMantissaLength - 1;
-			return new(product.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount, maxMantissaLength);
+			return new(product.ShiftRightRound(shiftAmount) & MantissaMask,
+				x.e + new UnsignedLongReal(shiftAmount), maxMantissaLength);
 		}
 		else if (x.e is null)
 		{
@@ -1206,42 +1309,67 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				return y;
 			var product = x.m * (MantissaOverflow + y.m);
 			var shiftAmount = product.BitLength - maxMantissaLength - 1;
-			return new(product.ShiftRightRound(shiftAmount) & MantissaMask, y.e + shiftAmount, maxMantissaLength);
+			return new(product.ShiftRightRound(shiftAmount) & MantissaMask,
+				y.e + new UnsignedLongReal(shiftAmount), maxMantissaLength);
 		}
 		else
 		{
 			var product = (MantissaOverflow + x.m) * (MantissaOverflow + y.m);
 			var shiftAmount = product.BitLength - maxMantissaLength - 1;
-			return new(product.ShiftRightRound(shiftAmount) & MantissaMask, x.e + y.e + shiftAmount - 1, maxMantissaLength);
+			return new(product.ShiftRightRound(shiftAmount) & MantissaMask,
+				x.e + y.e + new UnsignedLongReal(shiftAmount - 1), maxMantissaLength);
 		}
 	}
 
 	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
-	public static UnsignedLongReal operator /(UnsignedLongReal x, int y)
-	{
-		var MantissaLength = x.MantissaLength;
-		var MantissaOverflow = MpuT.One << MantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
-		if (x.e is null)
-			return new(x.m / y, null, MantissaLength);
-		else if (y == 0)
-			throw new DivideByZeroException(NoDivisionByZero);
-		else if (y == 1)
-			return x;
-		else if (x.e <= BitsPerInt - int.LeadingZeroCount(y))
-			return new(((MantissaOverflow + x.m) << (int)x.e - 1) / y, MantissaLength);
-		var quotient = (MantissaOverflow + x.m << MantissaLength + 1) / y;
-		var shiftAmount = quotient.BitLength - MantissaLength - 1;
-		return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount - MantissaLength - 1,
-			MantissaLength);
-	}
+	public static byte operator /(byte x, UnsignedLongReal y) => (byte)(x / (y & uint.MaxValue));
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(UnsignedLongReal x, byte y) => x / (uint)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static short operator /(short x, UnsignedLongReal y) => (short)(x / (y & uint.MaxValue));
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(UnsignedLongReal x, short y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static ushort operator /(ushort x, UnsignedLongReal y) => (ushort)(x / (y & uint.MaxValue));
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(UnsignedLongReal x, ushort y) => x / (uint)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(int x, UnsignedLongReal y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(UnsignedLongReal x, int y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(uint x, UnsignedLongReal y) => x / (y & uint.MaxValue);
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(long x, UnsignedLongReal y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(UnsignedLongReal x, long y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(ulong x, UnsignedLongReal y) => new UnsignedLongReal(x) / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(UnsignedLongReal x, ulong y) => x / new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(MpzT x, UnsignedLongReal y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(UnsignedLongReal x, MpzT y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(MpuT x, UnsignedLongReal y) => new UnsignedLongReal(x) / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator /(UnsignedLongReal x, MpuT y) => x / new UnsignedLongReal(y);
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(double x, UnsignedLongReal y) => x / (LongReal)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator /(UnsignedLongReal x, double y) => (LongReal)x / y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator /(decimal x, UnsignedLongReal y) => x / (LongDecimal)y;
+	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator /(UnsignedLongReal x, decimal y) => (LongDecimal)x / y;
 
 	/// <inheritdoc cref="operator /(UnsignedLongReal, UnsignedLongReal)"/>
 	public static UnsignedLongReal operator /(UnsignedLongReal x, uint y)
 	{
 		var MantissaLength = x.MantissaLength;
 		var MantissaOverflow = MpuT.One << MantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		if (x.e is null)
 			return new(x.m / y, null, MantissaLength);
 		else if (y == 0)
@@ -1252,15 +1380,15 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			return new(((MantissaOverflow + x.m) << (int)x.e - 1) / y, MantissaLength);
 		var quotient = (MantissaOverflow + x.m << MantissaLength + 1) / y;
 		var shiftAmount = quotient.BitLength - MantissaLength - 1;
-		return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount - MantissaLength - 1,
-			MantissaLength);
+		return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask,
+			x.e + (uint)shiftAmount - (uint)MantissaLength - 1u, MantissaLength);
 	}
 
 	public static UnsignedLongReal operator /(UnsignedLongReal x, UnsignedLongReal y)
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
 		var MantissaOverflow = MpuT.One << maxMantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		x = x.GetWithOtherML(maxMantissaLength, false);
 		y = y.GetWithOtherML(maxMantissaLength, false);
 		if (x.e is null && y.e is null)
@@ -1276,8 +1404,8 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				return new(((MantissaOverflow + x.m) << (int)x.e - 1) / y.m, maxMantissaLength);
 			var quotient = (MantissaOverflow + x.m << maxMantissaLength + 1) / y.m;
 			var shiftAmount = quotient.BitLength - maxMantissaLength - 1;
-			return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask, x.e + shiftAmount - maxMantissaLength - 1,
-				maxMantissaLength);
+			return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask,
+				x.e + (uint)shiftAmount - (uint)maxMantissaLength - 1u, maxMantissaLength);
 		}
 		else if (x.e is null || x.e < y.e)
 			return new(0, maxMantissaLength);
@@ -1287,11 +1415,54 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 				return new(((MantissaOverflow + x.m) << (int)(x.e - y.e)) / (MantissaOverflow + y.m), maxMantissaLength);
 			var quotient = (MantissaOverflow + x.m << maxMantissaLength + 2) / (MantissaOverflow + y.m);
 			var shiftAmount = quotient.BitLength - maxMantissaLength - 1;
-			return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask, x.e - y.e + shiftAmount - maxMantissaLength - 1,
-				maxMantissaLength);
+			return new(quotient.ShiftRightRound(shiftAmount) & MantissaMask,
+				x.e - y.e + new UnsignedLongReal(shiftAmount) - new UnsignedLongReal(maxMantissaLength + 1), maxMantissaLength);
 		}
 	}
 
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static byte operator %(byte x, UnsignedLongReal y) => (byte)(y > x ? 0 : x % (byte)y);
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static byte operator %(UnsignedLongReal x, byte y) => (byte)(x % new MpuT((uint)y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static short operator %(short x, UnsignedLongReal y) => (short)(y > x.ToUnsigned() ? 0 : x % (short)y);
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static short operator %(UnsignedLongReal x, short y) => (short)(y >= 0 ? x % new MpuT(y) : -(int)(x % new MpuT(-y)));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static ushort operator %(ushort x, UnsignedLongReal y) => (ushort)(y > x ? 0 : x % (ushort)y);
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static ushort operator %(UnsignedLongReal x, ushort y) => (ushort)(x % new MpuT((uint)y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static int operator %(int x, UnsignedLongReal y) => y > x.ToUnsigned() ? 0 : x % (int)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static int operator %(UnsignedLongReal x, int y) => y >= 0 ? (int)(x % new MpuT(y)) : -(int)(x % new MpuT(-y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static uint operator %(uint x, UnsignedLongReal y) => y > x ? 0 : x % (uint)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static uint operator %(UnsignedLongReal x, uint y) => (uint)(x % new MpuT(y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static long operator %(long x, UnsignedLongReal y) => y > x.ToUnsigned() ? 0 : x % (long)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static long operator %(UnsignedLongReal x, long y) => y >= 0 ? (long)(x % new MpuT(y)) : -(long)(x % new MpuT(-y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static ulong operator %(ulong x, UnsignedLongReal y) => (ulong)(new UnsignedLongReal(x) % y);
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static ulong operator %(UnsignedLongReal x, ulong y) => (ulong)(x % new MpuT(y));
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator %(MpzT x, UnsignedLongReal y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator %(UnsignedLongReal x, MpzT y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static UnsignedLongReal operator %(MpuT x, UnsignedLongReal y) => new UnsignedLongReal(x) % y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator %(double x, UnsignedLongReal y) => x % (LongReal)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongReal operator %(UnsignedLongReal x, double y) => (LongReal)x % y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator %(decimal x, UnsignedLongReal y) => x % (LongDecimal)y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
+	public static LongDecimal operator %(UnsignedLongReal x, decimal y) => (LongDecimal)x % y;
+	/// <inheritdoc cref="operator %(UnsignedLongReal, UnsignedLongReal)"/>
 	public static UnsignedLongReal operator %(UnsignedLongReal x, MpuT y) => new(x.DivRem(y).Remainder, x.MantissaLength);
 
 	public static UnsignedLongReal operator %(UnsignedLongReal x, UnsignedLongReal y) => x.DivRem(y).Remainder;
@@ -1326,7 +1497,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
 		var MantissaOverflow = MpuT.One << maxMantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		x = x.GetWithOtherML(maxMantissaLength, false);
 		y = y.GetWithOtherML(maxMantissaLength, false);
 		if (x.e is null && y.e is null)
@@ -1357,7 +1528,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			var shiftAmount = (MantissaOverflow + x.m).BitLength - newMantissa.BitLength;
 			if (x.e <= shiftAmount)
 				return new(newMantissa << (int)x.e - 1, null, maxMantissaLength);
-			return new(newMantissa << shiftAmount & MantissaMask, x.e - shiftAmount, maxMantissaLength);
+			return new(newMantissa << shiftAmount & MantissaMask, x.e - new UnsignedLongReal(shiftAmount), maxMantissaLength);
 		}
 	}
 
@@ -1404,7 +1575,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 	{
 		var maxMantissaLength = Math.Max(x.MantissaLength, y.MantissaLength);
 		var MantissaOverflow = MpuT.One << maxMantissaLength;
-		var MantissaMask = MantissaOverflow - 1;
+		var MantissaMask = MantissaOverflow - 1u;
 		x = x.GetWithOtherML(maxMantissaLength, false);
 		y = y.GetWithOtherML(maxMantissaLength, false);
 		if (x.e is null && y.e is null)
@@ -1443,7 +1614,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 			if (x.e <= shiftAmount)
 				return new(mXor, null, maxMantissaLength);
 			else
-				return new((mXor << shiftAmount) & MantissaMask, x.e - shiftAmount, maxMantissaLength);
+				return new((mXor << shiftAmount) & MantissaMask, x.e - new UnsignedLongReal(shiftAmount), maxMantissaLength);
 		}
 	}
 
@@ -1455,7 +1626,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		else if (x.e is null)
 			return new(x.m << shiftAmount, x.MantissaLength);
 		else
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 	}
 
 	/// <inheritdoc cref="operator {{(UnsignedLongReal, int)"/>
@@ -1464,11 +1635,11 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		if (shiftAmount.CompareTo(0) == 0)
 			return x;
 		else if (x.e is not null)
-			return new(x.m, x.e + shiftAmount, x.MantissaLength);
+			return new(x.m, x.e + new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else if (shiftAmount < x.MantissaLength)
 			return new(x.m << (int)shiftAmount, x.MantissaLength);
 		return new UnsignedLongReal(x.m << x.MantissaLength, x.MantissaLength)
-			<< shiftAmount - x.MantissaLength;
+			<< shiftAmount - (uint)x.MantissaLength;
 	}
 
 	public static UnsignedLongReal operator >>(UnsignedLongReal x, int shiftAmount)
@@ -1479,7 +1650,7 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		else if (x.e is null)
 			return new(x.m.ShiftRightRound(shiftAmount), null, x.MantissaLength);
 		else if (x.e > shiftAmount)
-			return new(x.m, x.e - shiftAmount, x.MantissaLength);
+			return new(x.m, x.e - new UnsignedLongReal(shiftAmount), x.MantissaLength);
 		else
 			return new((x.MantissaOverflow + x.m).ShiftRightRound(shiftAmount - (int)x.e + 1), null, x.MantissaLength);
 	}
@@ -1516,19 +1687,19 @@ public sealed class UnsignedLongReal : IUnsignedLongReal<UnsignedLongReal>
 		else if (Mpir.MpuCmp(value.m, value.MantissaMask) == 0)
 			return new(MpuT.Zero, value.e is not null ? 2 : 1, value.MantissaLength);
 		else
-			return new(value.m + 1, value.e, value.MantissaLength);
+			return new(value.m + 1u, value.e, value.MantissaLength);
 #pragma warning restore IDE0078 // Используйте сопоставление шаблонов
 	}
 
 	public static UnsignedLongReal operator --(UnsignedLongReal value)
 	{
 		if (value.e is null)
-			return new(value.m - 1, null, value.MantissaLength);
+			return new(value.m - 1u, null, value.MantissaLength);
 		var compTo2 = Mpir.MpuCmpSi(value.e.m, 2);
 		if (Mpir.MpuCmpSi(value.m, 0) == 0 && value.e.e is null && compTo2 <= 0)
 			return new(value.MantissaMask, compTo2 == 0 ? 1 : null, value.MantissaLength);
 		else if (value.e.e is null && compTo2 <= 0)
-			return new(value.m - 1, value.e, value.MantissaLength);
+			return new(value.m - 1u, value.e, value.MantissaLength);
 		else
 			return value;
 	}

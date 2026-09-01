@@ -20,6 +20,7 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 	/// <inheritdoc cref="IFloatingPointConstants{double}.E"/>
 	public static LongComplex E => new(LongReal.E, LongReal.Zero);
 	public LongReal Imaginary { get; } = imaginary;
+	public LongReal Magnitude => ((IComplexNumber<LongReal, LongComplex>)this).MagnitudeInterface;
 	public static LongComplex MultiplicativeIdentity => One;
 	/// <inheritdoc cref="LongReal.NaN"/>
 	public static LongComplex NaN { get; } = new(LongReal.NaN, LongReal.Zero);
@@ -28,6 +29,7 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 	/// <inheritdoc cref="ISignedNumber{double}.NegativeOne"/>
 	public static LongComplex NegativeOne => new(LongReal.NegativeOne, LongReal.Zero);
 	public static LongComplex One => new(LongReal.One, LongReal.Zero);
+	public LongReal Phase => ((IComplexNumber<LongReal, LongComplex>)this).PhaseInterface;
 	/// <inheritdoc cref="IFloatingPointConstants{double}.Pi"/>
 	public static LongComplex Pi => new(LongReal.Pi, LongReal.Zero);
 	/// <inheritdoc cref="LongReal.PositiveInfinity"/>
@@ -709,7 +711,38 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 	public static bool TryConvertFromSaturating<TOther>(TOther value, [MaybeNullWhen(false)] out LongComplex result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertFromTruncating<TOther>(TOther value, [MaybeNullWhen(false)] out LongComplex result)
-		where TOther : INumberBase<TOther> => throw new NotImplementedException();
+		where TOther : INumberBase<TOther>
+	{
+		result = value switch
+		{
+			byte n => new(n, 0),
+			short n => new(n, 0),
+			ushort n => new(n, 0),
+			int n => new(n, 0),
+			uint n => new(n, 0),
+			long n => new(n, 0),
+			ulong n => new(n, 0),
+			MpzT n => new(n, 0),
+			MpuT n => new(n, 0),
+			float r => new(r, 0),
+			double r => new(r, 0),
+			decimal r => LongReal.TryConvertFromTruncating(r, out var lr) ? new(lr, 0) : default,
+			UnsignedLongReal r => new(r, 0),
+			UnsignedLongDecimal r => LongReal.TryConvertFromTruncating(r, out var r2) ? new(r2, 0) : default,
+			LongReal r => new(r, 0),
+			LongDecimal r => LongReal.TryConvertFromTruncating(r, out var r2) ? new(r2, 0) : default,
+			Complex c => c,
+			LongComplex c => c,
+			Deccomplex c => LongReal.TryConvertFromTruncating(c.Real, out var re)
+				&& LongReal.TryConvertFromTruncating(c.Imaginary, out var im) ? new(re, im) : default,
+			LongDeccomplex c => LongReal.TryConvertFromTruncating(c.Real, out var re)
+				&& LongReal.TryConvertFromTruncating(c.Imaginary, out var im) ? new(re, im) : default,
+			string s => TryParse(s, out var c) ? c : default,
+			_ => default,
+		};
+		return result != default;
+	}
+
 	public static bool TryConvertToChecked<TOther>(LongComplex value, [MaybeNullWhen(false)] out TOther result)
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public static bool TryConvertToSaturating<TOther>(LongComplex value, [MaybeNullWhen(false)] out TOther result)
@@ -718,6 +751,10 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 		where TOther : INumberBase<TOther> => throw new NotImplementedException();
 	public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
 		((System.Numerics.Complex)this).TryFormat(destination, out charsWritten, format, provider);
+	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out LongComplex result) =>
+		TryParse(s, NumberStyles.None, provider, out result);
+
 	public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongComplex result)
 	{
@@ -732,13 +769,17 @@ public readonly struct LongComplex(LongReal real, LongReal imaginary) : IComplex
 			return false;
 		}
 	}
-	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out LongComplex result) => TryParse(s.AsSpan(), style, provider, out result);
-	public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
-		[MaybeNullWhen(false)] out LongComplex result) =>
-		TryParse(s, NumberStyles.None, provider, out result);
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, IFormatProvider?, out LongComplex)"/>
+	public static bool TryParse(ReadOnlySpan<char> s, [MaybeNullWhen(false)] out LongComplex result) =>
+		TryParse(s, NumberStyles.None, null, out result);
 	public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider,
 		[MaybeNullWhen(false)] out LongComplex result) => TryParse(s.AsSpan(), NumberStyles.None, provider, out result);
+	public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider,
+		[MaybeNullWhen(false)] out LongComplex result) => TryParse(s.AsSpan(), style, provider, out result);
+	/// <inheritdoc cref="TryParse(string, IFormatProvider?, out LongComplex)"/>
+	public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out LongComplex result) =>
+		TryParse(s.AsSpan(), NumberStyles.None, null, out result);
 
 	/// <inheritdoc cref="IBinaryInteger{TSelf}.TryWriteBigEndian"/>
 	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
